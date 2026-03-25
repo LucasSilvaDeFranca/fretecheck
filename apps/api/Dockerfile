@@ -31,7 +31,7 @@ RUN pnpm --filter @fretecheck/database generate
 RUN pnpm --filter @fretecheck/api build
 
 # Criar bundle de produção isolado com pnpm deploy
-RUN pnpm deploy --filter @fretecheck/api --prod /app/deploy
+RUN pnpm deploy --legacy --filter @fretecheck/api --prod /app/deploy
 
 # Copiar o Prisma Client gerado para o bundle de produção
 RUN cp -r /app/node_modules/.prisma /app/deploy/node_modules/.prisma
