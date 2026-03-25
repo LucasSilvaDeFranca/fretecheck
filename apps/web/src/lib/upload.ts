@@ -1,12 +1,19 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const BUCKET = 'checkin-media'
 
-// Cliente público — somente para upload de mídia
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-)
+// Cliente lazy — só criado no primeiro uso (evita crash no build do Next.js)
+let _supabase: SupabaseClient | null = null
+
+function getSupabase() {
+  if (!_supabase) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!url || !key) throw new Error('Supabase env vars não configuradas')
+    _supabase = createClient(url, key)
+  }
+  return _supabase
+}
 
 export interface UploadResult {
   publicUrl: string
@@ -27,6 +34,8 @@ export async function uploadMedia(
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'bin'
   const rand = Math.random().toString(36).slice(2, 8)
   const path = `${folder}/${ts}_${rand}.${ext}`
+
+  const supabase = getSupabase()
 
   const { error } = await supabase.storage
     .from(BUCKET)
