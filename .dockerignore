@@ -1,0 +1,49 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+.next
+.turbo
+build
+out
+coverage
+
+# Compiled package artifacts (built in Docker)
+packages/types/dist
+packages/validators/dist
+
+# Environment files (nunca incluir no build)
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.github
+
+# Editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Claude memory
+.claude
+
+# Documentos
+*.docx
+*.pdf
