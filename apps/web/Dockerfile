@@ -19,16 +19,19 @@ COPY packages/validators/ packages/validators/
 COPY apps/web/            apps/web/
 
 # Compilar pacotes compartilhados
-RUN pnpm --filter @fretecheck/types build
-RUN pnpm --filter @fretecheck/validators build
+RUN pnpm --filter @fretecheck/types build && \
+    pnpm --filter @fretecheck/validators build
 
 # NEXT_PUBLIC_* são injetadas em build-time pelo Next.js
-# Configure no EasyPanel como Build Args:
-#   NEXT_PUBLIC_API_URL=https://api.seudominio.com/api/v1
+# Configure no EasyPanel como Build Arg (ou Ambiente):
+#   NEXT_PUBLIC_API_URL=https://projeto-fretecheck.fy3ze8.easypanel.host/api/v1
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 ENV NEXT_TELEMETRY_DISABLED=1
+
+# Criar pasta public vazia caso não exista (evita falha no COPY)
+RUN mkdir -p apps/web/public
 
 RUN pnpm --filter @fretecheck/web build
 
