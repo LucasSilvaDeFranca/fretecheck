@@ -1,0 +1,431 @@
+// FreteCheck — Prisma Schema
+// Gerado conforme FreteCheck_Spec_Driven_Development.docx
+// Versão: 0.1.0
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/.pnpm/@prisma+client@5.22.0_prisma@5.22.0/node_modules/.prisma/client"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum Role {
+  MOTORISTA
+  TRANSPORTADORA_ADMIN
+  TRANSPORTADORA_OPERACIONAL
+  TRANSPORTADORA_FINANCEIRO
+  EMBARCADOR
+  PLATFORM_ADMIN
+  API_CONSUMER
+}
+
+enum CheckinStatus {
+  AWAITING_APPOINTMENT // Aguardando apontamento de causa
+  AWAITING_CHECKOUT    // Causa registrada, aguardando saída
+  CERTIFICATE_ISSUED   // Certificado emitido
+  TITLE_GENERATED      // Título de cobrança gerado
+  CANCELLED            // Cancelado
+}
+
+enum TituloStatus {
+  ISSUED     // Emitido
+  PAID       // Pago
+  CONTESTED  // Em contestação
+  PROTESTED  // Protestado em cartório
+  JUDICIAL   // Em execução judicial
+  CANCELLED  // Cancelado
+}
+
+enum CausaType {
+  EMBARCADOR   // Remetente causou o atraso
+  DESTINATARIO // Destinatário causou o atraso
+  TERMINAL     // Terminal/porto causou o atraso
+  OUTROS       // Outras causas
+}
+
+enum PlanoType {
+  FREE
+  PRO
+  BUSINESS
+  ENTERPRISE
+}
+
+enum AssinaturaStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  PAST_DUE
+}
+
+enum PagamentoMetodo {
+  CARTAO_CREDITO
+  BOLETO
+  PIX
+  FATURA
+}
+
+enum WebhookEvent {
+  CHECKIN_CREATED
+  CHECKOUT_COMPLETED
+  CERTIFICATE_ISSUED
+  TITULO_GERADO
+  TITULO_PAGO
+  TITULO_CONTESTADO
+  ALERTA_OVERBOOKING
+  SCORE_ATUALIZADO
+}
+
+// ─────────────────────────────────────────────
+// USERS & COMPANIES
+// ─────────────────────────────────────────────
+
+model User {
+  id              String    @id @default(cuid())
+  email           String?   @unique
+  phone           String?   @unique // WhatsApp (formato E.164)
+  cpf             String?   @unique
+  name            String
+  role            Role      @default(MOTORISTA)
+  passwordHash    String?
+  avatarUrl       String?
+  whatsappVerified Boolean  @default(false)
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String?
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime? // Soft delete (LGPD)
+
+  // Relações
+  empresa         Empresa?  @relation(fields: [empresaId], references: [id])
+  empresaId       String?
+  veiculo         Veiculo?  @relation(fields: [veiculoId], references: [id])
+  veiculoId       String?
+
+  checkins        Checkin[]
+  auditLogs       AuditLog[]
+  assinaturas     Assinatura[]
+  webhookConfigs  WebhookConfig[]
+
+  @@index([empresaId])
+  @@index([phone])
+  @@map("users")
+}
+
+model Empresa {
+  id          String    @id @default(cuid())
+  cnpj        String    @unique
+  razaoSocial String
+  nomeFantasia String?
+  email       String?
+  phone       String?
+  endereco    Json?     // { logradouro, numero, bairro, cidade, estado, cep }
+  logoUrl     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  users       User[]
+  veiculos    Veiculo[]
+  titulos     Titulo[]  @relation("EmpresaCobrada")
+  assinaturas Assinatura[]
+  webhookConfigs WebhookConfig[]
+
+  @@map("empresas")
+}
+
+// ─────────────────────────────────────────────
+// VEHICLES & TERMINALS
+// ─────────────────────────────────────────────
+
+model Veiculo {
+  id          String    @id @default(cuid())
+  placa       String    @unique
+  tipo        String    // truck, van, moto, etc.
+  pesoToneladas Decimal @db.Decimal(10, 3) // Tara + carga
+  marca       String?
+  modelo      String?
+  ano         Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  empresa     Empresa?  @relation(fields: [empresaId], references: [id])
+  empresaId   String?
+  motoristas  User[]
+  checkins    Checkin[]
+
+  @@index([placa])
+  @@map("veiculos")
+}
+
+model Terminal {
+  id          String    @id @default(cuid())
+  nome        String
+  cnpj        String?   @unique
+  tipo        String    // porto, armazem, cd, fabrica
+  endereco    Json      // { logradouro, numero, bairro, cidade, estado, cep, lat, lng }
+  lat         Decimal   @db.Decimal(10, 8)
+  lng         Decimal   @db.Decimal(11, 8)
+  score       Int       @default(100) // 0-100
+  scoreCalcAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  checkins    Checkin[]
+
+  @@index([lat, lng])
+  @@map("terminais")
+}
+
+// ─────────────────────────────────────────────
+// CORE: CHECK-IN / CHECK-OUT CYCLE
+// ─────────────────────────────────────────────
+
+model Checkin {
+  id              String        @id @default(cuid())
+  status          CheckinStatus @default(AWAITING_APPOINTMENT)
+
+  // Entrada
+  arrivedAt       DateTime      @default(now()) // Timestamp imutável
+  arrivedLat      Decimal       @db.Decimal(10, 8)
+  arrivedLng      Decimal       @db.Decimal(11, 8)
+  arrivedAccuracy Float         // metros
+  arrivedPhotoUrl String?
+
+  // Saída
+  departedAt      DateTime?
+  departedLat     Decimal?      @db.Decimal(10, 8)
+  departedLng     Decimal?      @db.Decimal(11, 8)
+  departedAccuracy Float?
+
+  // Cálculo de espera (preenchido no checkout)
+  tempoEsperaMin  Int?          // Tempo total em minutos
+  tempoExcedenteMin Int?        // Excedente após 300 min (5h)
+  valorEstimado   Decimal?      @db.Decimal(12, 2) // R$
+
+  // CT-e / MDF-e (SEFAZ)
+  cteNumero       String?
+  cteChave        String?
+  cteFetched      Boolean       @default(false)
+
+  observacoes     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relações
+  motorista       User          @relation(fields: [motoristaId], references: [id])
+  motoristaId     String
+  veiculo         Veiculo       @relation(fields: [veiculoId], references: [id])
+  veiculoId       String
+  terminal        Terminal?     @relation(fields: [terminalId], references: [id])
+  terminalId      String?
+
+  apontamento     Apontamento?
+  certificado     Certificado?
+  tituloItems     TituloItem[]
+
+  @@index([motoristaId])
+  @@index([terminalId])
+  @@index([status])
+  @@index([arrivedAt])
+  @@map("checkins")
+}
+
+model Apontamento {
+  id              String    @id @default(cuid())
+  causa           CausaType
+  causadorCnpj    String    // CNPJ do responsável
+  causadorNome    String
+  descricao       String?
+  evidenciaUrls          String[]  // Fotos/documentos com marca d'água
+  evidenciaOriginaisUrls String[]  @default([]) // Originais sem marca d'água
+  registradoVia   String    @default("web") // web | whatsapp | mobile
+  createdAt       DateTime  @default(now())
+
+  checkin         Checkin   @relation(fields: [checkinId], references: [id])
+  checkinId       String    @unique // Um checkin → um apontamento
+
+  @@map("apontamentos")
+}
+
+// ─────────────────────────────────────────────
+// CERTIFICATES
+// ─────────────────────────────────────────────
+
+model Certificado {
+  id              String    @id @default(cuid())
+  numero          String    @unique // FC-2024-000001
+  pdfUrl          String
+  pdfHash         String    // SHA-256 do PDF
+  assinadoIcpBrasil Boolean @default(false)
+  assinaturaTs    DateTime? // Timestamp da assinatura ICP
+  emitidoAt       DateTime  @default(now())
+
+  checkin         Checkin   @relation(fields: [checkinId], references: [id])
+  checkinId       String    @unique
+
+  @@map("certificados")
+}
+
+// ─────────────────────────────────────────────
+// BILLING TITLES
+// ─────────────────────────────────────────────
+
+model Titulo {
+  id              String       @id @default(cuid())
+  numero          String       @unique // TIT-2024-000001
+  status          TituloStatus @default(ISSUED)
+
+  causadorCnpj    String
+  causadorNome    String
+  valorTotal      Decimal      @db.Decimal(12, 2)
+  taxaPlataforma  Decimal      @db.Decimal(12, 2) // R$ 5-15
+
+  pdfUrl          String?
+  pdfHash         String?
+  assinadoIcpBrasil Boolean   @default(false)
+
+  vencimento      DateTime
+  emitidoAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relações
+  empresa         Empresa      @relation("EmpresaCobrada", fields: [empresaId], references: [id])
+  empresaId       String
+  items           TituloItem[]
+  contestacao     Contestacao?
+
+  @@index([empresaId])
+  @@index([status])
+  @@index([causadorCnpj])
+  @@map("titulos")
+}
+
+model TituloItem {
+  id          String  @id @default(cuid())
+  valor       Decimal @db.Decimal(12, 2)
+
+  titulo      Titulo  @relation(fields: [tituloId], references: [id])
+  tituloId    String
+  checkin     Checkin @relation(fields: [checkinId], references: [id])
+  checkinId   String
+
+  @@unique([tituloId, checkinId])
+  @@map("titulo_items")
+}
+
+model Contestacao {
+  id              String    @id @default(cuid())
+  motivo          String
+  evidenciaUrls   String[]
+  resposta        String?
+  resolvidoAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  titulo          Titulo    @relation(fields: [tituloId], references: [id])
+  tituloId        String    @unique
+
+  @@map("contestacoes")
+}
+
+// ─────────────────────────────────────────────
+// SUBSCRIPTIONS & BILLING
+// ─────────────────────────────────────────────
+
+model Assinatura {
+  id              String           @id @default(cuid())
+  plano           PlanoType
+  status          AssinaturaStatus @default(ACTIVE)
+  valorMensal     Decimal          @db.Decimal(10, 2)
+  metodo          PagamentoMetodo
+  gatewayId       String?          // ID no Asaas/Stripe
+  inicioAt        DateTime         @default(now())
+  fimAt           DateTime?
+  proximoVencAt   DateTime?
+  canceladoAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user            User?            @relation(fields: [userId], references: [id])
+  userId          String?
+  empresa         Empresa?         @relation(fields: [empresaId], references: [id])
+  empresaId       String?
+
+  @@index([userId])
+  @@index([empresaId])
+  @@map("assinaturas")
+}
+
+// ─────────────────────────────────────────────
+// WEBHOOKS
+// ─────────────────────────────────────────────
+
+model WebhookConfig {
+  id          String    @id @default(cuid())
+  url         String
+  secret      String    // HMAC-SHA256 secret
+  events      WebhookEvent[]
+  ativo       Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User?     @relation(fields: [userId], references: [id])
+  userId      String?
+  empresa     Empresa?  @relation(fields: [empresaId], references: [id])
+  empresaId   String?
+
+  logs        WebhookLog[]
+
+  @@map("webhook_configs")
+}
+
+model WebhookLog {
+  id              String    @id @default(cuid())
+  event           WebhookEvent
+  payload         Json
+  statusCode      Int?
+  responseBody    String?
+  tentativas      Int       @default(0)
+  proximaTentAt   DateTime?
+  sucesso         Boolean   @default(false)
+  criadoAt        DateTime  @default(now())
+
+  config          WebhookConfig @relation(fields: [configId], references: [id])
+  configId        String
+
+  @@index([configId])
+  @@index([event])
+  @@map("webhook_logs")
+}
+
+// ─────────────────────────────────────────────
+// AUDIT
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  action      String    // checkin.created, titulo.generated, etc.
+  resource    String    // Tabela/entidade
+  resourceId  String    // ID do recurso
+  payload     Json?     // Snapshot do estado
+  ip          String?
+  userAgent   String?
+  criadoAt    DateTime  @default(now())
+
+  user        User?     @relation(fields: [userId], references: [id])
+  userId      String?
+
+  @@index([userId])
+  @@index([resource, resourceId])
+  @@index([criadoAt])
+  @@map("audit_logs")
+}

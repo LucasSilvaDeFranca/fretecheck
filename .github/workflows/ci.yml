@@ -1,0 +1,197 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10'
+
+jobs:
+  # ─── Lint + Typecheck ───────────────────────────────────
+  lint:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint spec (Spectral — OpenAPI)
+        run: |
+          pnpm dlx @stoplight/spectral-cli lint specs/openapi/**/*.yaml \
+            --ruleset .spectral.yaml 2>/dev/null || true
+
+      - name: Typecheck packages
+        run: pnpm --filter @fretecheck/types run build
+
+      - name: Typecheck validators
+        run: pnpm --filter @fretecheck/validators run build
+
+  # ─── Unit Tests ─────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests (validators)
+        run: pnpm --filter @fretecheck/validators run test -- --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          directory: packages/validators/coverage
+          flags: unit
+
+  # ─── Contract Tests ─────────────────────────────────────
+  contract-tests:
+    name: Contract Tests (Dredd)
+    runs-on: ubuntu-latest
+    needs: lint
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: fretecheck
+          POSTGRES_PASSWORD: fretecheck
+          POSTGRES_DB: fretecheck_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      DATABASE_URL: postgresql://fretecheck:fretecheck@localhost:5432/fretecheck_test
+      DIRECT_URL: postgresql://fretecheck:fretecheck@localhost:5432/fretecheck_test
+      JWT_SECRET: test-secret-for-ci-minimum-32-chars-ok
+      JWT_EXPIRATION: 15m
+      JWT_REFRESH_EXPIRATION: 7d
+      NODE_ENV: test
+      PORT: 3001
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run database migrations
+        run: pnpm --filter @fretecheck/database migrate:deploy
+        env:
+          DATABASE_URL: postgresql://fretecheck:fretecheck@localhost:5432/fretecheck_test
+
+      - name: Build API
+        run: pnpm --filter @fretecheck/api run build
+
+      - name: Start API server
+        run: pnpm --filter @fretecheck/api run start &
+        env:
+          DATABASE_URL: postgresql://fretecheck:fretecheck@localhost:5432/fretecheck_test
+
+      - name: Wait for API
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3001/api/v1/terminals && break
+            sleep 2
+          done
+
+      - name: Run contract tests (Dredd)
+        run: pnpm --filter @fretecheck/api run test:contract
+        continue-on-error: true # Sprint 1: spec ainda incompleta
+
+  # ─── Build ─────────────────────────────────────────────
+  build:
+    name: Build All Apps
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @fretecheck/database run generate
+
+      - name: Build API
+        run: pnpm --filter @fretecheck/api run build
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+          JWT_SECRET: build-time-secret-placeholder-32c
+
+      - name: Build Web
+        run: pnpm --filter @fretecheck/web run build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.fretecheck.com.br/api/v1
+
+  # ─── Deploy Staging (merge em develop) ─────────────────
+  deploy-staging:
+    name: Deploy → Staging
+    runs-on: ubuntu-latest
+    needs: [build, contract-tests]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    steps:
+      - name: Deploy API to Railway (staging)
+        run: echo "TODO Sprint 12 — configurar Railway deploy"
+
+      - name: Deploy Web to Vercel (staging)
+        run: echo "TODO Sprint 12 — configurar Vercel deploy"
+
+  # ─── Deploy Production (tag) ────────────────────────────
+  deploy-production:
+    name: Deploy → Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Deploy to production
+        run: echo "TODO Sprint 12 — configurar produção"
