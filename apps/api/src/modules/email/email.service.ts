@@ -96,8 +96,9 @@ export class EmailService {
       )
       this.logger.log(`Email sent to ${to}: ${subject}`)
     } catch (err) {
-      const msg = (err as { message?: string }).message ?? String(err)
-      this.logger.error(`Failed to send email to ${to}: ${msg}`)
+      const axiosErr = err as { response?: { data?: unknown; status?: number }; message?: string }
+      const detail = axiosErr.response?.data ? JSON.stringify(axiosErr.response.data) : axiosErr.message ?? String(err)
+      this.logger.error(`Failed to send email to ${to} (${axiosErr.response?.status}): ${detail}`)
     }
   }
 
