@@ -14,18 +14,21 @@ export interface VeiculoInfo {
   pesoToneladas: number   // Peso Bruto Total (PBT) em toneladas
   proprietarioCpfCnpj?: string
   proprietarioNome?: string
-  fonte: 'brasil-id' | 'mock'
+  fonte: 'apibrasil' | 'mock'
 }
 
 @Injectable()
 export class BrasilIdService {
   private readonly logger = new Logger(BrasilIdService.name)
-  private readonly apiKey: string | undefined
-  private readonly baseUrl: string
 
-  constructor(private config: ConfigService) {
-    this.apiKey  = this.config.get<string>('BRASIL_ID_API_KEY')
-    this.baseUrl = this.config.get<string>('BRASIL_ID_BASE_URL', 'https://brasilid.com.br/api/v1')
+  constructor(private config: ConfigService) {}
+
+  private get bearerToken() {
+    return this.config.get<string>('APIBRASIL_BEARER_TOKEN') ?? ''
+  }
+
+  private get deviceToken() {
+    return this.config.get<string>('APIBRASIL_DEVICE_TOKEN') ?? ''
   }
 
   async consultarPlaca(placa: string): Promise<VeiculoInfo> {
@@ -35,97 +38,120 @@ export class BrasilIdService {
       throw new BadRequestException(`Placa inválida: ${placa}`)
     }
 
-    // Em dev/staging sem API key: retornar mock realista
-    if (!this.apiKey || this.config.get('NODE_ENV') === 'test') {
+    // Sem tokens configurados: retornar mock
+    if (!this.bearerToken || !this.deviceToken) {
+      this.logger.warn('APIBrasil tokens não configurados — usando mock')
       return this.mockVeiculo(placaLimpa)
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/veiculos/${placaLimpa}`, {
+      const response = await fetch('https://gateway.apibrasil.io/api/v2/vehicles/dados', {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.bearerToken}`,
+          'DeviceToken': this.deviceToken,
         },
-        signal: AbortSignal.timeout(5_000), // timeout 5s
+        body: JSON.stringify({ placa: placaLimpa }),
+        signal: AbortSignal.timeout(10_000),
       })
 
       if (!response.ok) {
-        if (response.status === 404) {
-          this.logger.warn(`Placa não encontrada no Brasil-ID: ${placaLimpa}`)
-          return this.mockVeiculo(placaLimpa) // Fallback gracioso
-        }
-        throw new Error(`Brasil-ID error: ${response.status}`)
+        this.logger.warn(`APIBrasil retornou ${response.status} para placa ${placaLimpa}`)
+        return this.mockVeiculo(placaLimpa)
       }
 
-      const data = await response.json() as BrasilIdResponse
-      return this.mapResponse(data, placaLimpa)
+      const data = await response.json() as ApiBrasilResponse
 
+      if (data.error || !data.response) {
+        this.logger.warn(`APIBrasil sem dados para placa ${placaLimpa}: ${data.message ?? 'sem resposta'}`)
+        return this.mockVeiculo(placaLimpa)
+      }
+
+      return this.mapResponse(data.response, placaLimpa)
     } catch (err) {
-      this.logger.error(`Falha na consulta Brasil-ID para placa ${placaLimpa}: ${(err as Error).message}`)
-      // Fallback gracioso — não bloqueia o check-in
+      this.logger.error(`Falha na consulta APIBrasil para placa ${placaLimpa}: ${(err as Error).message}`)
       return this.mockVeiculo(placaLimpa)
     }
   }
 
-  private mapResponse(data: BrasilIdResponse, placa: string): VeiculoInfo {
-    // Converter PBT de kg para toneladas (Brasil-ID retorna em kg)
-    const pesoToneladas = data.pbt_kg ? data.pbt_kg / 1000 : 0
+  private mapResponse(data: ApiBrasilVeiculo, placa: string): VeiculoInfo {
+    const pesoToneladas = this.estimarPeso(data.extra?.tipo_veiculo ?? data.segmento ?? '')
 
     return {
       placa,
-      tipo:   this.normalizarTipo(data.categoria ?? ''),
+      tipo:   this.normalizarTipo(data.extra?.tipo_veiculo ?? data.segmento ?? ''),
       marca:  data.marca ?? 'N/D',
       modelo: data.modelo ?? 'N/D',
-      ano:    data.ano_fabricacao ?? new Date().getFullYear(),
+      ano:    data.ano ? parseInt(String(data.ano), 10) : new Date().getFullYear(),
       cor:    data.cor ?? 'N/D',
-      chassi: data.chassi,
-      renavam: data.renavam,
+      chassi: data.extra?.chassi,
       pesoToneladas,
-      proprietarioCpfCnpj: data.proprietario_cpf_cnpj,
-      proprietarioNome:    data.proprietario_nome,
-      fonte: 'brasil-id',
+      fonte: 'apibrasil',
     }
   }
 
-  private normalizarTipo(categoria: string): string {
-    const cat = categoria.toUpperCase()
-    if (cat.includes('CAMINHAO') || cat.includes('CAMINHÃO')) return 'caminhao'
-    if (cat.includes('CARRETA'))    return 'carreta'
-    if (cat.includes('TRUCK'))      return 'truck'
-    if (cat.includes('VAN'))        return 'van'
-    if (cat.includes('MOTO'))       return 'moto'
+  private normalizarTipo(tipo: string): string {
+    const t = tipo.toUpperCase()
+    if (t.includes('CAMINHAO') || t.includes('CAMINHÃO') || t.includes('CAMINH')) return 'caminhao'
+    if (t.includes('CARRETA')) return 'carreta'
+    if (t.includes('REBOQUE') || t.includes('SEMI-REBOQUE')) return 'carreta'
+    if (t.includes('TRUCK'))   return 'truck'
+    if (t.includes('VAN') || t.includes('UTILITARIO')) return 'van'
+    if (t.includes('MOTO'))    return 'moto'
+    if (t.includes('ONIBUS') || t.includes('ÔNIBUS')) return 'onibus'
     return 'caminhao'
   }
 
+  private estimarPeso(tipo: string): number {
+    const t = tipo.toUpperCase()
+    if (t.includes('SEMI-REBOQUE') || t.includes('CARRETA')) return 41.5
+    if (t.includes('TRUCK') || t.includes('TRUCADO')) return 25
+    if (t.includes('CAMINHAO') || t.includes('CAMINHÃO') || t.includes('CAMINH')) return 16
+    if (t.includes('VAN') || t.includes('UTILITARIO')) return 3.5
+    if (t.includes('MOTO')) return 0.3
+    return 16 // padrão: caminhão toco
+  }
+
   private mockVeiculo(placa: string): VeiculoInfo {
-    // Mock determinístico baseado na placa para testes consistentes
-    const isMercosul = /^[A-Z]{3}[0-9][A-Z][0-9]{2}$/.test(placa)
     return {
       placa,
       tipo:   'caminhao',
-      marca:  'VOLKSWAGEN',
-      modelo: isMercosul ? 'Constellation 25.420' : 'Constellation 19.320',
-      ano:    2020,
-      cor:    'BRANCO',
-      pesoToneladas: 25, // PBT padrão para caminhão trucado
+      marca:  'N/D',
+      modelo: 'N/D',
+      ano:    new Date().getFullYear(),
+      cor:    'N/D',
+      pesoToneladas: 16,
       fonte: 'mock',
     }
   }
 }
 
-// Formato de resposta da API Brasil-ID (estrutura aproximada)
-interface BrasilIdResponse {
+// ─── APIBrasil Response Types ────────────────────────────────────────────────
+
+interface ApiBrasilResponse {
+  error?: boolean
+  message?: string
+  response?: ApiBrasilVeiculo
+}
+
+interface ApiBrasilVeiculo {
   placa?: string
   marca?: string
   modelo?: string
-  ano_fabricacao?: number
-  ano_modelo?: number
+  ano?: string | number
+  anoModelo?: string | number
   cor?: string
-  chassi?: string
-  renavam?: string
-  categoria?: string
-  pbt_kg?: number  // Peso Bruto Total em kg
-  proprietario_nome?: string
-  proprietario_cpf_cnpj?: string
-  situacao?: string
+  segmento?: string
+  sub_segmento?: string
+  extra?: {
+    chassi?: string
+    renavam?: string
+    tipo_veiculo?: string
+    combustivel?: string
+    cilindradas?: string
+    cap_max_trac?: string
+    municipio?: string
+    uf?: string
+  }
 }

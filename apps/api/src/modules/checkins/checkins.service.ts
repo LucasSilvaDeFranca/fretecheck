@@ -38,13 +38,13 @@ export class CheckinsService {
       throw new ConflictException('Você já possui um check-in em aberto. Finalize-o antes de iniciar outro.')
     }
 
-    // Buscar ou criar veículo — consultar Brasil-ID para dados reais
+    // Buscar ou criar veículo — consultar API para dados reais
     const placa = dto.placa.replace(/[-\s]/g, '').toUpperCase()
     let veiculo = await this.prisma.veiculo.findUnique({ where: { placa } })
-    if (!veiculo) {
-      this.logger.log(`Consultando Brasil-ID para placa: ${placa}`)
-      const veiculoInfo = await this.brasilId.consultarPlaca(placa)
 
+    const veiculoInfo = await this.brasilId.consultarPlaca(placa)
+
+    if (!veiculo) {
       veiculo = await this.prisma.veiculo.create({
         data: {
           placa,
@@ -56,6 +56,19 @@ export class CheckinsService {
         },
       })
       this.logger.log(`Veículo criado: ${placa} (${veiculoInfo.modelo}, ${veiculoInfo.pesoToneladas}t) — fonte: ${veiculoInfo.fonte}`)
+    } else if (veiculoInfo.fonte === 'apibrasil' && veiculoInfo.marca !== 'N/D') {
+      // Atualizar dados do veículo se a API retornou dados reais
+      veiculo = await this.prisma.veiculo.update({
+        where: { placa },
+        data: {
+          tipo:          veiculoInfo.tipo,
+          pesoToneladas: veiculoInfo.pesoToneladas,
+          marca:         veiculoInfo.marca,
+          modelo:        veiculoInfo.modelo,
+          ano:           veiculoInfo.ano,
+        },
+      })
+      this.logger.log(`Veículo atualizado: ${placa} (${veiculoInfo.marca} ${veiculoInfo.modelo}) — fonte: ${veiculoInfo.fonte}`)
     }
 
     const checkin = await this.prisma.checkin.create({
