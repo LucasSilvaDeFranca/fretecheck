@@ -49,7 +49,7 @@ export class CreateCheckinDto {
 
   @ApiProperty({ example: 15, description: 'Precisão GPS em metros (máx: 500)' })
   @IsNumber()
-  @Max(80, { message: 'Precisão GPS deve ser ≤ 80 metros' })
+  @Max(99999, { message: 'Precisão GPS inválida' })
   accuracy!: number
 
   @ApiPropertyOptional()
