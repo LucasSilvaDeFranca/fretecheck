@@ -22,8 +22,12 @@ export class AuthController {
   @Get('confirm-email')
   @ApiOperation({ summary: 'Confirmar email via link' })
   async confirmEmail(@Query('token') token: string, @Res() reply: FastifyReply) {
-    await this.authService.confirmEmail(token)
-    return reply.redirect(`https://arbitrax.tec.br/login?confirmed=true`)
+    try {
+      await this.authService.confirmEmail(token)
+      return reply.status(302).redirect(`https://arbitrax.tec.br/login?confirmed=true`)
+    } catch {
+      return reply.status(302).redirect(`https://arbitrax.tec.br/login?error=link-invalido`)
+    }
   }
 
   @Post('login')
