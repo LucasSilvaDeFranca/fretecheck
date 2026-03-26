@@ -38,6 +38,7 @@ export default function NovoCheckinPage() {
   const createCheckin = useCreateCheckin()
 
   const [geo, setGeo] = useState<GeoState>({ lat: null, lng: null, accuracy: null, error: null, loading: true })
+  const [endereco, setEndereco] = useState<string | null>(null)
   const [veiculoFound, setVeiculoFound] = useState(false)
   const [buscandoPlaca, setBuscandoPlaca] = useState(false)
 
@@ -85,13 +86,23 @@ export default function NovoCheckinPage() {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setGeo({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          error: null,
-          loading: false,
+        const { latitude, longitude, accuracy } = pos.coords
+        setGeo({ lat: latitude, lng: longitude, accuracy, error: null, loading: false })
+
+        // Geocodificação reversa (Nominatim/OpenStreetMap — grátis)
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=pt-BR`, {
+          headers: { 'User-Agent': 'FreteCheck/1.0' },
         })
+          .then((r) => r.json())
+          .then((data) => {
+            const a = data.address ?? {}
+            const rua = a.road ?? a.pedestrian ?? ''
+            const cidade = a.city ?? a.town ?? a.village ?? ''
+            const estado = a.state ?? ''
+            const parts = [rua, cidade, estado].filter(Boolean)
+            if (parts.length) setEndereco(parts.join(', '))
+          })
+          .catch(() => {})
       },
       (err) => {
         setGeo((g) => ({
@@ -158,6 +169,9 @@ export default function NovoCheckinPage() {
             <p className="text-xs text-text-muted">
               {geo.lat?.toFixed(6)}, {geo.lng?.toFixed(6)} · Precisão: {Math.round(geo.accuracy ?? 0)}m
             </p>
+            {endereco && (
+              <p className="text-xs text-text-secondary mt-1">{endereco}</p>
+            )}
             {(geo.accuracy ?? 0) > 500 && (
               <p className="text-xs text-amber-400">Precisão baixa. Aguarde ou se mova para área aberta.</p>
             )}
