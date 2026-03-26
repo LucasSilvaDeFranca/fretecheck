@@ -10,17 +10,17 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: 'light',
+  theme: 'dark',
   toggleTheme: () => {},
 })
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light')
+  const [theme, setTheme] = useState<Theme>('dark')
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     const stored = localStorage.getItem('fretecheck-theme') as Theme | null
-    const initial = stored ?? 'light'
+    const initial = stored ?? 'dark'
     setTheme(initial)
     if (initial === 'dark') {
       document.documentElement.classList.add('dark')

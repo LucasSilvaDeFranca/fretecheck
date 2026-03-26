@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 // Script to prevent flash of wrong theme on initial load
 const themeScript = `
   (function() {
-    var theme = localStorage.getItem('fretecheck-theme') || 'light';
+    var theme = localStorage.getItem('fretecheck-theme') || 'dark';
     if (theme === 'dark') document.documentElement.classList.add('dark');
   })();
 `
