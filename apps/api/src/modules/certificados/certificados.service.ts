@@ -14,6 +14,7 @@ import QRCode from 'qrcode'
 import { PrismaService } from '../../prisma/prisma.service'
 import { JwtPayload } from '@fretecheck/types'
 import { WebhooksService } from '../webhooks/webhooks.service'
+import { EmailService } from '../email/email.service'
 
 @Injectable()
 export class CertificadosService {
@@ -23,6 +24,7 @@ export class CertificadosService {
     private prisma: PrismaService,
     private config: ConfigService,
     private webhooks: WebhooksService,
+    private email: EmailService,
   ) {}
 
   async emitir(checkinId: string, user: JwtPayload) {
@@ -30,7 +32,7 @@ export class CertificadosService {
     const checkin = await this.prisma.checkin.findUnique({
       where: { id: checkinId },
       include: {
-        motorista: { select: { id: true, name: true, cpf: true, phone: true } },
+        motorista: { select: { id: true, name: true, email: true, cpf: true, phone: true } },
         veiculo: true,
         terminal: true,
         apontamento: true,
@@ -109,6 +111,19 @@ export class CertificadosService {
     })
 
     this.logger.log(`Certificado ${numero} emitido. ICP: ${assinaturaResult.assinado}`)
+
+    // Enviar email de certificado (fire-and-forget)
+    if (checkin.motorista.email) {
+      this.email.sendCertificateIssued(checkin.motorista.email, {
+        nome: checkin.motorista.name,
+        numero,
+        placa: checkin.veiculo?.placa ?? '—',
+        tempoEsperaMin: checkin.tempoEsperaMin ?? 0,
+        tempoExcedenteMin: checkin.tempoExcedenteMin ?? 0,
+        valorEstimado: checkin.valorEstimado ? Number(checkin.valorEstimado).toFixed(2) : '0,00',
+        pdfUrl,
+      }).catch(() => {})
+    }
 
     this.webhooks.dispatch('CERTIFICATE_ISSUED', {
       checkinId,

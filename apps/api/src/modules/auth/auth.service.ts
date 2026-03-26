@@ -83,6 +83,11 @@ export class AuthService {
       },
     })
 
+    // Enviar email de boas-vindas (fire-and-forget)
+    if (dto.email) {
+      this.email.sendWelcome(dto.email, dto.name).catch(() => {})
+    }
+
     return {
       user: this.toUserResponse(user),
       tokens,
