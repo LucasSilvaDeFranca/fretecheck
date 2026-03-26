@@ -9,25 +9,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // FreteCheck brand colors
         brand: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',  // Primary
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
+          50: '#EFF6FF',
+          100: '#DBEAFE',
+          200: '#BFDBFE',
+          300: '#93C5FD',
+          400: '#60A5FA',
+          500: '#3B82F6',
+          600: '#2563EB',
+          700: '#1D4ED8',
+          800: '#1E40AF',
+          900: '#1E3A5F',
         },
-        success: '#22c55e',
-        warning: '#f59e0b',
-        danger: '#ef4444',
+        accent: '#F59E0B',
+        cta: '#F97316',
+        success: '#22C55E',
+        warning: '#F59E0B',
+        danger: '#EF4444',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
       },
     },
   },

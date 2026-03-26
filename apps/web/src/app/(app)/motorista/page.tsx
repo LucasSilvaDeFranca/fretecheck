@@ -85,7 +85,7 @@ export default function MotoristaDashboard() {
       <Card>
         <CardHeader>
           <CardTitle>Últimos check-ins</CardTitle>
-          <Link href="/motorista/historico" className="text-sm text-brand-600 hover:underline">
+          <Link href="/motorista/historico" className="text-sm text-brand-600 hover:underline cursor-pointer">
             Ver todos
           </Link>
         </CardHeader>
@@ -105,7 +105,7 @@ export default function MotoristaDashboard() {
               <Link
                 key={c.id}
                 href={`/motorista/checkin/${c.id}`}
-                className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
               >
                 <div>
                   <p className="text-sm font-medium text-gray-900">{c.placa}</p>
