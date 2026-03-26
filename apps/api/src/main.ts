@@ -9,7 +9,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: process.env.NODE_ENV !== 'production' }),
+    new FastifyAdapter({ logger: true }),
   )
 
   const config = app.get(ConfigService)
