@@ -29,6 +29,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               : 'border-dark-600 focus:border-brand-500 focus:ring-brand-500/20',
             className,
           )}
+          maxLength={props.maxLength ?? 150}
           {...props}
         />
         {error && <p className="text-xs text-red-400 font-medium">{error}</p>}

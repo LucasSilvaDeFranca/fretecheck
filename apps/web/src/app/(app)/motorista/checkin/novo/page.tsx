@@ -10,18 +10,16 @@ import { useCreateCheckin } from '@/hooks/use-checkins'
 import { api } from '@/lib/api'
 import { Button, Input, Card, CardHeader, CardTitle } from '@/components/ui'
 
-const placaRegex = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$|^[A-Z]{3}[0-9]{4}$/
-
 const schema = z.object({
-  placa: z.string().regex(placaRegex, 'Placa inválida (ex: ABC1234 ou ABC1D23)'),
-  marca: z.string().optional(),
-  modelo: z.string().optional(),
+  placa: z.string().min(1, 'Informe a placa').max(10, 'Máximo 10 caracteres'),
+  marca: z.string().max(150).optional(),
+  modelo: z.string().max(150).optional(),
   capacidadeCargaTon: z
     .number({ invalid_type_error: 'Informe a capacidade em toneladas' })
     .min(0.1, 'Mínimo 0.1 toneladas')
-    .max(100, 'Máximo 100 toneladas'),
-  cteNumero: z.string().optional(),
-  observacoes: z.string().optional(),
+    .max(1000000, 'Máximo 1.000.000 toneladas'),
+  cteNumero: z.string().max(150).optional(),
+  observacoes: z.string().max(150).optional(),
 })
 
 type FormData = z.infer<typeof schema>
@@ -52,7 +50,7 @@ export default function NovoCheckinPage() {
   // Buscar veículo quando placa tiver formato válido
   const buscarVeiculo = useCallback(async (placa: string) => {
     const placaLimpa = placa.replace(/[-\s]/g, '').toUpperCase()
-    if (!placaRegex.test(placaLimpa)) return
+    if (placaLimpa.length < 2) return
 
     setBuscandoPlaca(true)
     try {
@@ -72,7 +70,7 @@ export default function NovoCheckinPage() {
 
   // Debounce na placa
   useEffect(() => {
-    if (!placaValue || placaValue.length < 7) {
+    if (!placaValue || placaValue.length < 2) {
       setVeiculoFound(false)
       return
     }
@@ -176,6 +174,7 @@ export default function NovoCheckinPage() {
               error={errors.placa?.message}
               placeholder="ABC1234"
               className="uppercase"
+              maxLength={10}
             />
             {buscandoPlaca && (
               <p className="text-xs text-text-muted mt-1">Buscando veículo...</p>

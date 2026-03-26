@@ -9,10 +9,12 @@ export class CreateApontamentoDto {
 
   @ApiProperty({ example: '11222333000181', description: 'CNPJ do responsável pelo atraso' })
   @IsString()
+  @MaxLength(150)
   causadorCnpj!: string
 
   @ApiProperty({ example: 'Armazém Central São Paulo Ltda' })
   @IsString()
+  @MaxLength(150)
   causadorNome!: string
 
   @ApiPropertyOptional({ example: 'Fila de descarga excessiva por falta de operadores' })

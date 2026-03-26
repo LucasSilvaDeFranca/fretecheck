@@ -6,14 +6,15 @@ import {
   IsUrl,
   Min,
   Max,
-  Matches,
+  MaxLength,
   Length,
+  Matches,
 } from 'class-validator'
 
 export class CreateCheckinDto {
-  @ApiProperty({ example: 'ABC1D23', description: 'Placa do veículo (Mercosul ou antigo)' })
+  @ApiProperty({ example: 'ABC1D23', description: 'Placa do veículo' })
   @IsString()
-  @Matches(/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/, { message: 'Placa inválida' })
+  @MaxLength(10)
   placa!: string
 
   @ApiProperty({ example: -23.5505 })
@@ -30,18 +31,20 @@ export class CreateCheckinDto {
 
   @ApiPropertyOptional({ example: 'VOLKSWAGEN' })
   @IsString()
+  @MaxLength(150)
   @IsOptional()
   marca?: string
 
   @ApiPropertyOptional({ example: 'Constellation 25.420' })
   @IsString()
+  @MaxLength(150)
   @IsOptional()
   modelo?: string
 
   @ApiProperty({ example: 25, description: 'Capacidade de carga em toneladas' })
   @IsNumber()
   @Min(0.1, { message: 'Capacidade de carga deve ser maior que 0' })
-  @Max(100, { message: 'Capacidade de carga máxima: 100 toneladas' })
+  @Max(1000000, { message: 'Capacidade de carga máxima: 1.000.000' })
   capacidadeCargaTon!: number
 
   @ApiProperty({ example: 15, description: 'Precisão GPS em metros (máx: 500)' })
@@ -56,6 +59,7 @@ export class CreateCheckinDto {
 
   @ApiPropertyOptional({ example: '123456789' })
   @IsString()
+  @MaxLength(150)
   @IsOptional()
   cteNumero?: string
 
@@ -68,11 +72,13 @@ export class CreateCheckinDto {
 
   @ApiPropertyOptional()
   @IsString()
+  @MaxLength(150)
   @IsOptional()
   terminalId?: string
 
   @ApiPropertyOptional()
   @IsString()
+  @MaxLength(150)
   @IsOptional()
   observacoes?: string
 }

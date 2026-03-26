@@ -14,28 +14,32 @@ export class RegisterDto {
   @ApiProperty({ example: 'João da Silva' })
   @IsString()
   @MinLength(2)
-  @MaxLength(100)
+  @MaxLength(150)
   name!: string
 
   @ApiPropertyOptional({ example: 'joao@transportadora.com.br' })
   @IsEmail()
+  @MaxLength(150)
   @IsOptional()
   email?: string
 
   @ApiPropertyOptional({ example: '+5511999999999', description: 'Formato E.164' })
   @IsString()
+  @MaxLength(150)
   @Matches(/^\+55[1-9][0-9]{9,10}$/, { message: 'Telefone inválido. Use +5511999999999' })
   @IsOptional()
   phone?: string
 
   @ApiPropertyOptional({ example: '529.982.247-25' })
   @IsString()
+  @MaxLength(150)
   @IsOptional()
   cpf?: string
 
   @ApiPropertyOptional({ minLength: 8 })
   @IsString()
   @MinLength(8)
+  @MaxLength(150)
   @IsOptional()
   password?: string
 
