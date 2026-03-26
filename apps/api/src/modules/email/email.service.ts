@@ -127,13 +127,26 @@ export class EmailService {
 
   // ─── Boas-vindas ─────────────────────────────────────────────────────────────
 
-  async sendWelcome(email: string, name: string): Promise<void> {
-    const subject = 'Bem-vindo ao FreteCheck!'
+  async sendWelcome(email: string, name: string, confirmToken?: string): Promise<void> {
+    const subject = 'Confirme seu email — FreteCheck'
+    const apiBase = process.env.CORS_ORIGIN?.split(',')[0]?.includes('arbitrax')
+      ? 'https://projeto-fretecheck-back.fy3ze8.easypanel.host'
+      : 'http://localhost:3001'
+    const confirmUrl = `${apiBase}/api/v1/auth/confirm-email?token=${confirmToken}`
+
     const body = `
       <h2 style="margin:0 0 8px;color:${DARK_TEXT};font-size:18px;font-weight:bold">Olá, ${name}!</h2>
       <p style="color:${GRAY};margin:0 0 20px;font-size:14px;line-height:1.6">
-        Sua conta foi criada com sucesso. Agora você pode registrar seus check-ins, gerar certificados de tempo de espera e proteger seus direitos como transportador.
+        Sua conta foi criada com sucesso. Para ativá-la, confirme seu email clicando no botão abaixo.
       </p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px">
+      <tr><td align="center">
+        <a href="${confirmUrl}" style="display:inline-block;background:${BRAND};color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;padding:14px 32px;border-radius:6px">
+          Confirmar meu email
+        </a>
+      </td></tr>
+      </table>
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px">
         <tr>
@@ -149,8 +162,8 @@ export class EmailService {
         </tr>
       </table>
 
-      <p style="color:${GRAY};font-size:13px;margin:0;line-height:1.5">
-        Acesse a plataforma e comece agora mesmo.
+      <p style="color:${GRAY};font-size:12px;margin:0;line-height:1.5">
+        Este link expira em 1 hora. Se você não criou esta conta, ignore este email.
       </p>
     `
     await this.sendTransactional(email, subject, this.wrap(body))

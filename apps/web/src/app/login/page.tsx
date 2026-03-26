@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { api } from '@/lib/api'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useAuthStore } from '@/lib/auth-store'
@@ -25,9 +25,17 @@ type LoginForm = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const setAuth = useAuthStore((s) => s.setAuth)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [confirmed, setConfirmed] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get('confirmed') === 'true') {
+      setConfirmed(true)
+    }
+  }, [searchParams])
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -65,6 +73,12 @@ export default function LoginPage() {
           </Link>
           <p className="text-text-muted mt-2 text-sm">Entre na sua conta</p>
         </div>
+
+        {confirmed && (
+          <div className="always-dark bg-teal-400/10 border border-teal-400/25 rounded-xl p-4 mb-4 text-center">
+            <p className="text-teal-400 text-sm font-medium">Email confirmado com sucesso! Agora faça login.</p>
+          </div>
+        )}
 
         <div className="always-dark bg-dark-800 border border-dark-600 rounded-xl p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

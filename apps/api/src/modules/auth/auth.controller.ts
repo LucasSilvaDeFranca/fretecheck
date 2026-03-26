@@ -1,4 +1,5 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common'
+import { Controller, Post, Get, Body, Query, HttpCode, HttpStatus, Res } from '@nestjs/common'
+import type { FastifyReply } from 'fastify'
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
 import { AuthService } from './auth.service'
 import { RegisterDto } from './dto/register.dto'
@@ -16,6 +17,15 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'Email ou CPF já cadastrado' })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto)
+  }
+
+  @Get('confirm-email')
+  @ApiOperation({ summary: 'Confirmar email via link' })
+  async confirmEmail(@Query('token') token: string, @Res() reply: FastifyReply) {
+    await this.authService.confirmEmail(token)
+    // Redirecionar para login com mensagem de sucesso
+    const frontendUrl = process.env.CORS_ORIGIN?.split(',')[0] ?? 'http://localhost:3000'
+    return reply.redirect(`${frontendUrl}/login?confirmed=true`)
   }
 
   @Post('login')

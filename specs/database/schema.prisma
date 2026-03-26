@@ -99,6 +99,7 @@ model User {
   whatsappVerified Boolean  @default(false)
   twoFactorEnabled Boolean  @default(false)
   twoFactorSecret  String?
+  emailVerifiedAt DateTime?
   lastLoginAt     DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
