@@ -66,7 +66,7 @@ export default function LoginPage() {
           <p className="text-text-muted mt-2 text-sm">Entre na sua conta</p>
         </div>
 
-        <div className="bg-dark-800 border border-dark-600 rounded-xl p-6">
+        <div className="always-dark bg-dark-800 border border-dark-600 rounded-xl p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">

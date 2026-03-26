@@ -31,6 +31,17 @@
     --c-text-muted: 138 151 171;       /* #8A97AB  muted */
   }
 
+  /* Cards e sidebar sempre escuros, independente do tema */
+  .always-dark {
+    --c-dark-800: 19 32 53;
+    --c-dark-700: 28 46 71;
+    --c-dark-600: 36 54 80;
+    --c-dark-500: 78 93 112;
+    --c-text-primary: 255 255 255;
+    --c-text-secondary: 208 215 226;
+    --c-text-muted: 138 151 171;
+  }
+
   html {
     font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   }

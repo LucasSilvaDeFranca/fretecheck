@@ -45,7 +45,7 @@ export default function MotoristaDashboard() {
 
       {/* Active check-in banner */}
       {activeCheckin && (
-        <div className="bg-brand-500/10 border border-brand-500/25 rounded-xl p-4">
+        <div className="always-dark bg-brand-500/10 border border-brand-500/25 rounded-xl p-4">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-brand-500">Check-in ativo</p>

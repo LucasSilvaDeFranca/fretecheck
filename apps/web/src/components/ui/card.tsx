@@ -9,7 +9,7 @@ export function Card({ padding = 'md', className, children, ...props }: CardProp
   return (
     <div
       className={clsx(
-        'bg-dark-800 rounded-xl border border-dark-600 transition-colors duration-150',
+        'always-dark bg-dark-800 rounded-xl border border-dark-600 transition-colors duration-150',
         {
           'p-0': padding === 'none',
           'p-4': padding === 'sm',

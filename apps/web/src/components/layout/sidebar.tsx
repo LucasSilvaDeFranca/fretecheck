@@ -116,7 +116,7 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile header bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-dark-900/80 backdrop-blur-md border-b border-dark-600 px-4 py-3 flex items-center justify-between">
+      <div className="always-dark lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#0B1628]/95 backdrop-blur-md border-b border-dark-600 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-1">
           <span className="text-lg font-bold text-text-primary">Frete</span>
           <span className="text-lg font-bold text-brand-500">Check</span>
@@ -144,7 +144,7 @@ export function Sidebar() {
       {/* Mobile sidebar */}
       <aside
         className={clsx(
-          'lg:hidden fixed top-0 left-0 z-50 h-full w-64 bg-dark-900 border-r border-dark-600 flex flex-col',
+          'always-dark lg:hidden fixed top-0 left-0 z-50 h-full w-64 bg-[#0B1628] border-r border-dark-600 flex flex-col',
           'transition-transform duration-200',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
@@ -153,7 +153,7 @@ export function Sidebar() {
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-dark-900 border-r border-dark-600 min-h-screen flex-shrink-0">
+      <aside className="always-dark hidden lg:flex flex-col w-64 bg-[#0B1628] border-r border-dark-600 min-h-screen flex-shrink-0">
         {navContent}
       </aside>
     </>
