@@ -195,7 +195,7 @@ export default function CheckinDetailPage() {
               <label className="block text-sm font-medium text-text-secondary mb-1.5">Causa</label>
               <select
                 {...register('causa')}
-                className="w-full rounded-lg border border-dark-600 bg-dark-800 text-text-secondary px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all duration-150 cursor-pointer"
+                className="w-full rounded-lg border border-dark-600 bg-[#e8f0fd] text-gray-900 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all duration-150 cursor-pointer"
               >
                 <option value="">Selecione...</option>
                 {Object.entries(CAUSA_LABELS).map(([v, l]) => (
