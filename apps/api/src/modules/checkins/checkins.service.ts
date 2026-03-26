@@ -13,7 +13,6 @@ import { CreateApontamentoDto } from './dto/create-apontamento.dto'
 import { CheckoutDto } from './dto/checkout.dto'
 import { JwtPayload, TEMPO_LIVRE_MINUTOS, calcularValorEspera } from '@fretecheck/types'
 import { isValidCnpj } from '@fretecheck/validators'
-import { BrasilIdService } from '../integrations/brasil-id/brasil-id.service'
 import { WebhooksService } from '../webhooks/webhooks.service'
 
 @Injectable()
@@ -22,7 +21,6 @@ export class CheckinsService {
 
   constructor(
     private prisma: PrismaService,
-    private brasilId: BrasilIdService,
     private webhooks: WebhooksService,
   ) {}
 
@@ -38,37 +36,19 @@ export class CheckinsService {
       throw new ConflictException('Você já possui um check-in em aberto. Finalize-o antes de iniciar outro.')
     }
 
-    // Buscar ou criar veículo — consultar API para dados reais
+    // Buscar ou criar veículo pela placa
     const placa = dto.placa.replace(/[-\s]/g, '').toUpperCase()
     let veiculo = await this.prisma.veiculo.findUnique({ where: { placa } })
-
-    const veiculoInfo = await this.brasilId.consultarPlaca(placa)
 
     if (!veiculo) {
       veiculo = await this.prisma.veiculo.create({
         data: {
           placa,
-          tipo:           veiculoInfo.tipo,
-          pesoToneladas:  veiculoInfo.pesoToneladas,
-          marca:          veiculoInfo.marca,
-          modelo:         veiculoInfo.modelo,
-          ano:            veiculoInfo.ano,
+          tipo:          'caminhao',
+          pesoToneladas: dto.capacidadeCargaTon,
         },
       })
-      this.logger.log(`Veículo criado: ${placa} (${veiculoInfo.modelo}, ${veiculoInfo.pesoToneladas}t) — fonte: ${veiculoInfo.fonte}`)
-    } else if (veiculoInfo.fonte === 'apibrasil' && veiculoInfo.marca !== 'N/D') {
-      // Atualizar dados do veículo se a API retornou dados reais
-      veiculo = await this.prisma.veiculo.update({
-        where: { placa },
-        data: {
-          tipo:          veiculoInfo.tipo,
-          pesoToneladas: veiculoInfo.pesoToneladas,
-          marca:         veiculoInfo.marca,
-          modelo:        veiculoInfo.modelo,
-          ano:           veiculoInfo.ano,
-        },
-      })
-      this.logger.log(`Veículo atualizado: ${placa} (${veiculoInfo.marca} ${veiculoInfo.modelo}) — fonte: ${veiculoInfo.fonte}`)
+      this.logger.log(`Veículo criado: ${placa}`)
     }
 
     const checkin = await this.prisma.checkin.create({
@@ -76,6 +56,7 @@ export class CheckinsService {
         motoristaId: user.sub,
         veiculoId: veiculo.id,
         terminalId: dto.terminalId,
+        capacidadeCargaTon: dto.capacidadeCargaTon,
         arrivedLat: dto.lat,
         arrivedLng: dto.lng,
         arrivedAccuracy: dto.accuracy,
@@ -231,8 +212,8 @@ export class CheckinsService {
     const tempoEsperaMin = Math.floor((now.getTime() - arrivedAt.getTime()) / 60_000)
     const tempoExcedenteMin = Math.max(0, tempoEsperaMin - TEMPO_LIVRE_MINUTOS)
 
-    // Calcular valor (usa peso do veículo; se 0, usa peso mínimo de referência = 5t)
-    const pesoTon = Number(checkin.veiculo?.pesoToneladas ?? 5)
+    // Calcular valor usando capacidade de carga informada no check-in
+    const pesoTon = Number((checkin as { capacidadeCargaTon?: unknown }).capacidadeCargaTon ?? 5)
     const valorEstimado = calcularValorEspera(tempoExcedenteMin, pesoTon)
 
     const updated = await this.prisma.checkin.update({
@@ -278,12 +259,11 @@ export class CheckinsService {
     return this.formatCheckin(updated)
   }
 
-  private async getCheckinOrFail(id: string, includeVeiculo = false) {
+  private async getCheckinOrFail(id: string, _includeVeiculo = false) {
     const checkin = await this.prisma.checkin.findUnique({
       where: { id },
       include: {
         apontamento: true,
-        veiculo: includeVeiculo ? { select: { pesoToneladas: true } } : false,
       },
     })
     if (!checkin) throw new NotFoundException('Check-in não encontrado')

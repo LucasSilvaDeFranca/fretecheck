@@ -206,6 +206,9 @@ model Checkin {
   departedLng     Decimal?      @db.Decimal(11, 8)
   departedAccuracy Float?
 
+  // Capacidade de carga informada pelo motorista (dinâmica por viagem)
+  capacidadeCargaTon Decimal    @default(0) @db.Decimal(10, 3)
+
   // Cálculo de espera (preenchido no checkout)
   tempoEsperaMin  Int?          // Tempo total em minutos
   tempoExcedenteMin Int?        // Excedente após 300 min (5h)

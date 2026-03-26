@@ -28,6 +28,12 @@ export class CreateCheckinDto {
   @Max(180)
   lng!: number
 
+  @ApiProperty({ example: 25, description: 'Capacidade de carga em toneladas' })
+  @IsNumber()
+  @Min(0.1, { message: 'Capacidade de carga deve ser maior que 0' })
+  @Max(100, { message: 'Capacidade de carga máxima: 100 toneladas' })
+  capacidadeCargaTon!: number
+
   @ApiProperty({ example: 15, description: 'Precisão GPS em metros (máx: 500)' })
   @IsNumber()
   @Max(500, { message: 'Precisão GPS deve ser ≤ 500 metros' })

@@ -13,6 +13,10 @@ const schema = z.object({
   placa: z
     .string()
     .regex(/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$|^[A-Z]{3}[0-9]{4}$/, 'Placa inválida (ex: ABC1234 ou ABC1D23)'),
+  capacidadeCargaTon: z
+    .number({ invalid_type_error: 'Informe a capacidade em toneladas' })
+    .min(0.1, 'Mínimo 0.1 toneladas')
+    .max(100, 'Máximo 100 toneladas'),
   cteNumero: z.string().optional(),
   observacoes: z.string().optional(),
 })
@@ -68,6 +72,7 @@ export default function NovoCheckinPage() {
     if (!geo.lat || !geo.lng) return
     const result = await createCheckin.mutateAsync({
       placa: data.placa.toUpperCase(),
+      capacidadeCargaTon: data.capacidadeCargaTon,
       lat: geo.lat,
       lng: geo.lng,
       accuracy: geo.accuracy ?? 999,
@@ -123,6 +128,15 @@ export default function NovoCheckinPage() {
             error={errors.placa?.message}
             placeholder="ABC1234"
             className="uppercase"
+          />
+          <Input
+            label="Capacidade de carga (toneladas)"
+            type="number"
+            step="0.1"
+            {...register('capacidadeCargaTon', { valueAsNumber: true })}
+            error={errors.capacidadeCargaTon?.message}
+            placeholder="Ex: 25"
+            hint="Capacidade total que o veículo pode transportar nesta viagem"
           />
           <Input
             label="Número do CT-e (opcional)"

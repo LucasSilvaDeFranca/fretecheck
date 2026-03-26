@@ -274,7 +274,7 @@ export class CertificadosService {
       if (checkin.motorista.cpf) campo('CPF', checkin.motorista.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4'))
       campo('Veículo (Placa)', checkin.veiculo?.placa ?? '—')
       campo('Veículo (Modelo)', `${checkin.veiculo?.marca ?? ''} ${checkin.veiculo?.modelo ?? ''}`.trim() || '—')
-      campo('Peso (Referência)', checkin.veiculo ? `${Number(checkin.veiculo.pesoToneladas).toFixed(1)} toneladas` : '—')
+      campo('Capacidade de Carga', `${Number((checkin as unknown as { capacidadeCargaTon: unknown }).capacidadeCargaTon ?? 0).toFixed(1)} toneladas`)
       if (checkin.terminal) campo('Terminal / Destino', checkin.terminal.nome)
 
       y += 5
