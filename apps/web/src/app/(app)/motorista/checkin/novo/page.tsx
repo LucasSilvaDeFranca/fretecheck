@@ -143,7 +143,14 @@ export default function NovoCheckinPage() {
             Obtendo localização...
           </div>
         ) : geo.error ? (
-          <p className="text-sm text-red-400">{geo.error}</p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-red-400" />
+              <span className="text-sm text-red-400 font-medium">Localização indisponível</span>
+            </div>
+            <p className="text-sm text-red-400">{geo.error}</p>
+            <p className="text-xs text-text-muted">A localização GPS é obrigatória para registrar o check-in. Ative a permissão de localização no seu navegador e recarregue a página.</p>
+          </div>
         ) : (
           <div className="space-y-1">
             <div className="flex items-center gap-2">
