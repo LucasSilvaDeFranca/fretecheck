@@ -23,9 +23,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Confirmar email via link' })
   async confirmEmail(@Query('token') token: string, @Res() reply: FastifyReply) {
     await this.authService.confirmEmail(token)
-    // Redirecionar para login com mensagem de sucesso
-    const frontendUrl = process.env.CORS_ORIGIN?.split(',')[0] ?? 'http://localhost:3000'
-    return reply.redirect(`${frontendUrl}/login?confirmed=true`)
+    return reply.redirect(`https://arbitrax.tec.br/login?confirmed=true`)
   }
 
   @Post('login')

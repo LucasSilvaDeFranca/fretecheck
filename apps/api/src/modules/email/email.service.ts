@@ -129,10 +129,7 @@ export class EmailService {
 
   async sendWelcome(email: string, name: string, confirmToken?: string): Promise<void> {
     const subject = 'Confirme seu email — FreteCheck'
-    const apiBase = process.env.CORS_ORIGIN?.split(',')[0]?.includes('arbitrax')
-      ? 'https://projeto-fretecheck-back.fy3ze8.easypanel.host'
-      : 'http://localhost:3001'
-    const confirmUrl = `${apiBase}/api/v1/auth/confirm-email?token=${confirmToken}`
+    const confirmUrl = `https://projeto-fretecheck-back.fy3ze8.easypanel.host/api/v1/auth/confirm-email?token=${confirmToken}`
 
     const body = `
       <h2 style="margin:0 0 8px;color:${DARK_TEXT};font-size:18px;font-weight:bold">Olá, ${name}!</h2>
