@@ -172,8 +172,8 @@ export default function NovoCheckinPage() {
             {endereco && (
               <p className="text-xs text-text-secondary mt-1">{endereco}</p>
             )}
-            {(geo.accuracy ?? 0) > 500 && (
-              <p className="text-xs text-amber-400">Precisão baixa. Aguarde ou se mova para área aberta.</p>
+            {(geo.accuracy ?? 0) > 80 && (
+              <p className="text-xs text-amber-400">Precisão baixa ({Math.round(geo.accuracy ?? 0)}m). Necessário menos de 80m. Aguarde ou se mova para área aberta.</p>
             )}
           </div>
         )}
@@ -247,7 +247,7 @@ export default function NovoCheckinPage() {
             className="w-full"
             size="lg"
             loading={createCheckin.isPending}
-            disabled={geo.loading || !!geo.error}
+            disabled={geo.loading || !!geo.error || (geo.accuracy ?? 999) > 80}
           >
             Registrar entrada
           </Button>
