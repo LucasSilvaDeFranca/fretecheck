@@ -46,9 +46,20 @@ export class CheckinsService {
           placa,
           tipo:          'caminhao',
           pesoToneladas: dto.capacidadeCargaTon,
+          marca:         dto.marca || null,
+          modelo:        dto.modelo || null,
         },
       })
-      this.logger.log(`Veículo criado: ${placa}`)
+      this.logger.log(`Veículo criado: ${placa} (${dto.marca ?? ''} ${dto.modelo ?? ''})`)
+    } else if (dto.marca || dto.modelo) {
+      // Atualizar marca/modelo se informados
+      veiculo = await this.prisma.veiculo.update({
+        where: { placa },
+        data: {
+          ...(dto.marca ? { marca: dto.marca } : {}),
+          ...(dto.modelo ? { modelo: dto.modelo } : {}),
+        },
+      })
     }
 
     const checkin = await this.prisma.checkin.create({
@@ -257,6 +268,16 @@ export class CheckinsService {
     })
 
     return this.formatCheckin(updated)
+  }
+
+  async findVeiculoByPlaca(placa: string) {
+    const placaLimpa = placa.replace(/[-\s]/g, '').toUpperCase()
+    const veiculo = await this.prisma.veiculo.findUnique({
+      where: { placa: placaLimpa },
+      select: { placa: true, marca: true, modelo: true },
+    })
+    if (!veiculo) throw new NotFoundException('Veículo não encontrado')
+    return veiculo
   }
 
   private async getCheckinOrFail(id: string, _includeVeiculo = false) {

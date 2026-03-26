@@ -45,6 +45,12 @@ export class CheckinsController {
     return this.service.findAll(user.sub, page, limit)
   }
 
+  @Get('veiculo/:placa')
+  @ApiOperation({ summary: 'Buscar veículo por placa (auto-preenchimento)' })
+  findVeiculo(@Param('placa') placa: string) {
+    return this.service.findVeiculoByPlaca(placa)
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Detalhe de um check-in' })
   findOne(@Param('id') id: string, @CurrentUser() user: JwtPayload) {

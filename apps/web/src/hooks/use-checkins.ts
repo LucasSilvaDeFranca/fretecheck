@@ -33,6 +33,9 @@ export interface ApontamentoResponse {
 
 export interface CreateCheckinInput {
   placa: string
+  marca?: string
+  modelo?: string
+  capacidadeCargaTon: number
   lat: number
   lng: number
   accuracy: number

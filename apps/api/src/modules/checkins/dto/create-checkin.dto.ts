@@ -28,6 +28,16 @@ export class CreateCheckinDto {
   @Max(180)
   lng!: number
 
+  @ApiPropertyOptional({ example: 'VOLKSWAGEN' })
+  @IsString()
+  @IsOptional()
+  marca?: string
+
+  @ApiPropertyOptional({ example: 'Constellation 25.420' })
+  @IsString()
+  @IsOptional()
+  modelo?: string
+
   @ApiProperty({ example: 25, description: 'Capacidade de carga em toneladas' })
   @IsNumber()
   @Min(0.1, { message: 'Capacidade de carga deve ser maior que 0' })

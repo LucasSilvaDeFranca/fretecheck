@@ -1,18 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { useCreateCheckin } from '@/hooks/use-checkins'
+import { api } from '@/lib/api'
 import { Button, Input, Card, CardHeader, CardTitle } from '@/components/ui'
 
+const placaRegex = /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$|^[A-Z]{3}[0-9]{4}$/
+
 const schema = z.object({
-  placa: z
-    .string()
-    .regex(/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$|^[A-Z]{3}[0-9]{4}$/, 'Placa inválida (ex: ABC1234 ou ABC1D23)'),
+  placa: z.string().regex(placaRegex, 'Placa inválida (ex: ABC1234 ou ABC1D23)'),
+  marca: z.string().optional(),
+  modelo: z.string().optional(),
   capacidadeCargaTon: z
     .number({ invalid_type_error: 'Informe a capacidade em toneladas' })
     .min(0.1, 'Mínimo 0.1 toneladas')
@@ -37,10 +40,45 @@ export default function NovoCheckinPage() {
   const createCheckin = useCreateCheckin()
 
   const [geo, setGeo] = useState<GeoState>({ lat: null, lng: null, accuracy: null, error: null, loading: true })
+  const [veiculoFound, setVeiculoFound] = useState(false)
+  const [buscandoPlaca, setBuscandoPlaca] = useState(false)
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
+
+  const placaValue = watch('placa')
+
+  // Buscar veículo quando placa tiver formato válido
+  const buscarVeiculo = useCallback(async (placa: string) => {
+    const placaLimpa = placa.replace(/[-\s]/g, '').toUpperCase()
+    if (!placaRegex.test(placaLimpa)) return
+
+    setBuscandoPlaca(true)
+    try {
+      const { data } = await api.get(`/checkins/veiculo/${placaLimpa}`)
+      if (data.marca) setValue('marca', data.marca)
+      if (data.modelo) setValue('modelo', data.modelo)
+      setVeiculoFound(true)
+    } catch {
+      // Veículo novo — limpar campos para preenchimento manual
+      setValue('marca', '')
+      setValue('modelo', '')
+      setVeiculoFound(false)
+    } finally {
+      setBuscandoPlaca(false)
+    }
+  }, [setValue])
+
+  // Debounce na placa
+  useEffect(() => {
+    if (!placaValue || placaValue.length < 7) {
+      setVeiculoFound(false)
+      return
+    }
+    const timer = setTimeout(() => buscarVeiculo(placaValue), 400)
+    return () => clearTimeout(timer)
+  }, [placaValue, buscarVeiculo])
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -72,6 +110,8 @@ export default function NovoCheckinPage() {
     if (!geo.lat || !geo.lng) return
     const result = await createCheckin.mutateAsync({
       placa: data.placa.toUpperCase(),
+      marca: data.marca || undefined,
+      modelo: data.modelo || undefined,
       capacidadeCargaTon: data.capacidadeCargaTon,
       lat: geo.lat,
       lng: geo.lng,
@@ -122,13 +162,37 @@ export default function NovoCheckinPage() {
 
       <Card>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Input
-            label="Placa do veículo"
-            {...register('placa')}
-            error={errors.placa?.message}
-            placeholder="ABC1234"
-            className="uppercase"
-          />
+          <div>
+            <Input
+              label="Placa do veículo"
+              {...register('placa')}
+              error={errors.placa?.message}
+              placeholder="ABC1234"
+              className="uppercase"
+            />
+            {buscandoPlaca && (
+              <p className="text-xs text-gray-400 mt-1">Buscando veículo...</p>
+            )}
+            {veiculoFound && !buscandoPlaca && (
+              <p className="text-xs text-green-600 mt-1">Veículo encontrado — dados preenchidos</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Marca"
+              {...register('marca')}
+              error={errors.marca?.message}
+              placeholder="Ex: VOLKSWAGEN"
+            />
+            <Input
+              label="Modelo"
+              {...register('modelo')}
+              error={errors.modelo?.message}
+              placeholder="Ex: Constellation"
+            />
+          </div>
+
           <Input
             label="Capacidade de carga (toneladas)"
             type="number"
@@ -136,7 +200,7 @@ export default function NovoCheckinPage() {
             {...register('capacidadeCargaTon', { valueAsNumber: true })}
             error={errors.capacidadeCargaTon?.message}
             placeholder="Ex: 25"
-            hint="Capacidade total que o veículo pode transportar nesta viagem"
+            hint="Capacidade de carga desta viagem"
           />
           <Input
             label="Número do CT-e (opcional)"
