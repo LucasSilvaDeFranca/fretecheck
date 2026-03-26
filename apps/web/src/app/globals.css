@@ -5,6 +5,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 @layer base {
+  /* ─── Light Mode (default) ──────────────────────────────────────────── */
+  :root {
+    --c-dark-900: 247 247 247;   /* #f7f7f7  main bg */
+    --c-dark-800: 255 255 255;   /* #ffffff  cards */
+    --c-dark-700: 240 240 240;   /* #f0f0f0  hover bg */
+    --c-dark-600: 229 229 229;   /* #e5e5e5  borders */
+    --c-dark-500: 212 212 212;   /* #d4d4d4  hover borders */
+
+    --c-text-primary: 26 26 26;     /* #1a1a1a  headings */
+    --c-text-secondary: 74 74 74;   /* #4a4a4a  body */
+    --c-text-muted: 138 138 138;    /* #8a8a8a  muted */
+  }
+
+  /* ─── Dark Mode ─────────────────────────────────────────────────────── */
+  .dark {
+    --c-dark-900: 11 22 40;      /* #0B1628  main bg */
+    --c-dark-800: 19 32 53;      /* #132035  cards */
+    --c-dark-700: 28 46 71;      /* #1C2E47  hover bg */
+    --c-dark-600: 36 54 80;      /* #243650  borders */
+    --c-dark-500: 78 93 112;     /* #4E5D70  hover borders */
+
+    --c-text-primary: 255 255 255;     /* #ffffff  headings */
+    --c-text-secondary: 208 215 226;   /* #D0D7E2  body */
+    --c-text-muted: 138 151 171;       /* #8A97AB  muted */
+  }
+
   html {
     font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
   }

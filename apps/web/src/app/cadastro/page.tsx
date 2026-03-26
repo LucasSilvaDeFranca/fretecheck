@@ -56,7 +56,7 @@ export default function CadastroPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-1 cursor-pointer">
-            <span className="text-white font-bold text-3xl">Frete</span>
+            <span className="text-text-primary font-bold text-3xl">Frete</span>
             <span className="text-brand-500 font-bold text-3xl">Check</span>
           </Link>
           <p className="text-text-muted mt-2 text-sm">Crie sua conta gratuitamente</p>

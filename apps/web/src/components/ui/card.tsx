@@ -35,7 +35,7 @@ export function CardHeader({ className, children, ...props }: HTMLAttributes<HTM
 
 export function CardTitle({ className, children, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={clsx('text-base font-semibold text-white', className)} {...props}>
+    <h3 className={clsx('text-base font-semibold text-text-primary', className)} {...props}>
       {children}
     </h3>
   )

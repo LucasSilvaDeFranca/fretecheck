@@ -11,20 +11,20 @@ export default function HomePage() {
       {/* Navbar */}
       <nav className="w-full flex items-center justify-between px-6 md:px-12 lg:px-20 py-5 border-b border-dark-600 bg-dark-900/80 backdrop-blur-md relative z-50">
         <Link href="/" className="flex items-center gap-1">
-          <span className="text-2xl font-bold text-white">Frete</span>
+          <span className="text-2xl font-bold text-text-primary">Frete</span>
           <span className="text-2xl font-bold text-brand-500">Check</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-8 text-sm text-text-muted">
-          <Link href="#como-funciona" className="hover:text-white transition-colors duration-150 cursor-pointer">Como funciona</Link>
-          <Link href="#pilares" className="hover:text-white transition-colors duration-150 cursor-pointer">Pilares</Link>
-          <Link href="/login" className="hover:text-white transition-colors duration-150 cursor-pointer">Entrar</Link>
+          <Link href="#como-funciona" className="hover:text-text-primary transition-colors duration-150 cursor-pointer">Como funciona</Link>
+          <Link href="#pilares" className="hover:text-text-primary transition-colors duration-150 cursor-pointer">Pilares</Link>
+          <Link href="/login" className="hover:text-text-primary transition-colors duration-150 cursor-pointer">Entrar</Link>
           <Link href="/cadastro" className="bg-brand-500 text-white rounded-lg py-2.5 px-5 font-semibold hover:bg-brand-600 transition-all duration-150 hover:shadow-[0_0_24px_rgba(240,90,26,0.3)] cursor-pointer">
             Começar grátis
           </Link>
         </div>
 
-        <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-white p-2 cursor-pointer" aria-label="Menu">
+        <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-text-primary p-2 cursor-pointer" aria-label="Menu">
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             {menuOpen ? (
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -38,8 +38,8 @@ export default function HomePage() {
       {/* Mobile menu */}
       {menuOpen && (
         <div className="md:hidden bg-dark-800 border-b border-dark-600 px-6 py-4 flex flex-col gap-3">
-          <Link href="#como-funciona" onClick={() => setMenuOpen(false)} className="text-text-muted hover:text-white text-sm py-2 cursor-pointer">Como funciona</Link>
-          <Link href="/login" onClick={() => setMenuOpen(false)} className="text-text-muted hover:text-white text-sm py-2 cursor-pointer">Entrar</Link>
+          <Link href="#como-funciona" onClick={() => setMenuOpen(false)} className="text-text-muted hover:text-text-primary text-sm py-2 cursor-pointer">Como funciona</Link>
+          <Link href="/login" onClick={() => setMenuOpen(false)} className="text-text-muted hover:text-text-primary text-sm py-2 cursor-pointer">Entrar</Link>
           <Link href="/cadastro" onClick={() => setMenuOpen(false)} className="bg-brand-500 text-white font-semibold text-sm px-5 py-2.5 rounded-lg text-center cursor-pointer">Começar grátis</Link>
         </div>
       )}
@@ -51,7 +51,7 @@ export default function HomePage() {
           Beta disponível para transportadoras
         </div>
 
-        <h1 className="font-bold text-4xl md:text-6xl lg:text-7xl leading-[1.1] tracking-tight text-white mb-6">
+        <h1 className="font-bold text-4xl md:text-6xl lg:text-7xl leading-[1.1] tracking-tight text-text-primary mb-6">
           Identifique o responsável.
           <br />
           <span className="text-brand-500">Certifique a espera.</span>
@@ -68,7 +68,7 @@ export default function HomePage() {
           <Link href="/cadastro" className="bg-brand-500 text-white font-semibold px-8 py-3 text-base rounded-lg hover:bg-brand-600 transition-all duration-150 hover:shadow-[0_0_32px_rgba(240,90,26,0.35)] cursor-pointer">
             Começar grátis
           </Link>
-          <Link href="#como-funciona" className="px-8 py-3 text-base text-brand-500 border-2 border-brand-500 rounded-lg hover:bg-brand-500 hover:text-white transition-all duration-150 cursor-pointer font-semibold">
+          <Link href="#como-funciona" className="px-8 py-3 text-base text-brand-500 border-2 border-brand-500 rounded-lg hover:bg-brand-500 hover:text-text-primary transition-all duration-150 cursor-pointer font-semibold">
             Saiba mais
           </Link>
         </div>
@@ -135,7 +135,7 @@ export default function HomePage() {
               )}
             >
               <div className="font-mono text-2xl md:text-3xl text-brand-500 w-16 shrink-0">{p.num}.</div>
-              <div className="text-3xl md:text-4xl font-semibold text-white w-full lg:w-1/3 tracking-tight">{p.title}</div>
+              <div className="text-3xl md:text-4xl font-semibold text-text-primary w-full lg:w-1/3 tracking-tight">{p.title}</div>
               <div className="flex-grow flex flex-col gap-4">
                 <div className="flex flex-wrap gap-2">
                   {p.tags.map((t) => (
@@ -158,7 +158,7 @@ export default function HomePage() {
           <div className="h-px bg-dark-600 flex-grow" />
         </div>
 
-        <h2 className="text-3xl md:text-5xl font-semibold tracking-tight text-white leading-[1.2] max-w-5xl mb-16">
+        <h2 className="text-3xl md:text-5xl font-semibold tracking-tight text-text-primary leading-[1.2] max-w-5xl mb-16">
           Em 4 passos simples, o motorista registra, comprova e gera o certificado com validade jurídica.
         </h2>
 
@@ -171,7 +171,7 @@ export default function HomePage() {
           ].map((s) => (
             <div key={s.step} className="bg-dark-800 border border-dark-600 rounded-[20px] p-8 hover:border-dark-500 transition-all duration-150 group">
               <span className="font-mono text-brand-500 text-sm mb-4 block">{s.step}.</span>
-              <h3 className="text-xl font-semibold text-white mb-3 tracking-tight">{s.title}</h3>
+              <h3 className="text-xl font-semibold text-text-primary mb-3 tracking-tight">{s.title}</h3>
               <p className="text-text-muted text-sm leading-relaxed">{s.desc}</p>
             </div>
           ))}
@@ -196,21 +196,21 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row justify-between gap-12 mb-16">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-1">
-                <span className="text-2xl font-bold text-white">Frete</span>
+                <span className="text-2xl font-bold text-text-primary">Frete</span>
                 <span className="text-2xl font-bold text-brand-500">Check</span>
               </div>
               <p className="text-sm text-text-muted max-w-xs">Certificação de Tempo de Espera no Transporte com validade jurídica.</p>
             </div>
             <div className="flex gap-12">
               <div className="flex flex-col gap-3">
-                <h4 className="text-sm font-semibold text-white">Plataforma</h4>
-                <Link href="/login" className="text-sm text-text-muted hover:text-white transition-colors duration-150 cursor-pointer">Entrar</Link>
-                <Link href="/cadastro" className="text-sm text-text-muted hover:text-white transition-colors duration-150 cursor-pointer">Cadastrar</Link>
+                <h4 className="text-sm font-semibold text-text-primary">Plataforma</h4>
+                <Link href="/login" className="text-sm text-text-muted hover:text-text-primary transition-colors duration-150 cursor-pointer">Entrar</Link>
+                <Link href="/cadastro" className="text-sm text-text-muted hover:text-text-primary transition-colors duration-150 cursor-pointer">Cadastrar</Link>
               </div>
               <div className="flex flex-col gap-3">
-                <h4 className="text-sm font-semibold text-white">Legal</h4>
-                <Link href="/privacidade" className="text-sm text-text-muted hover:text-white transition-colors duration-150 cursor-pointer">Privacidade (LGPD)</Link>
-                <Link href="/termos" className="text-sm text-text-muted hover:text-white transition-colors duration-150 cursor-pointer">Termos de uso</Link>
+                <h4 className="text-sm font-semibold text-text-primary">Legal</h4>
+                <Link href="/privacidade" className="text-sm text-text-muted hover:text-text-primary transition-colors duration-150 cursor-pointer">Privacidade (LGPD)</Link>
+                <Link href="/termos" className="text-sm text-text-muted hover:text-text-primary transition-colors duration-150 cursor-pointer">Termos de uso</Link>
               </div>
             </div>
           </div>

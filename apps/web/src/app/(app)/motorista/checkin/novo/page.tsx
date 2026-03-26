@@ -125,7 +125,7 @@ export default function NovoCheckinPage() {
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Novo Check-in</h1>
+        <h1 className="text-2xl font-bold text-text-primary">Novo Check-in</h1>
         <p className="text-text-muted text-sm mt-1">Registre sua chegada ao terminal</p>
       </div>
 

@@ -9,9 +9,20 @@ export const metadata: Metadata = {
   keywords: ['frete', 'transporte', 'certificação', 'espera', 'cobrança'],
 }
 
+// Script to prevent flash of wrong theme on initial load
+const themeScript = `
+  (function() {
+    var theme = localStorage.getItem('fretecheck-theme') || 'dark';
+    if (theme === 'dark') document.documentElement.classList.add('dark');
+  })();
+`
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <Providers>{children}</Providers>
       </body>

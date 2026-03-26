@@ -30,7 +30,7 @@ export default function MotoristaDashboard() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Olá, {user?.name?.split(' ')[0]}</h1>
+          <h1 className="text-2xl font-bold text-text-primary">Olá, {user?.name?.split(' ')[0]}</h1>
           <p className="text-text-muted text-sm mt-0.5">Painel do motorista</p>
         </div>
         <Link href="/motorista/checkin/novo">
@@ -50,7 +50,7 @@ export default function MotoristaDashboard() {
             <div>
               <p className="text-sm font-semibold text-brand-500">Check-in ativo</p>
               <p className="text-text-secondary text-sm mt-1">
-                Placa <strong className="text-white">{activeCheckin.placa}</strong> · Entrada em {formatDate(activeCheckin.arrivedAt)}
+                Placa <strong className="text-text-primary">{activeCheckin.placa}</strong> · Entrada em {formatDate(activeCheckin.arrivedAt)}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export default function MotoristaDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <p className="text-sm text-text-muted">Check-ins no período</p>
-          <p className="text-3xl font-bold text-white mt-1">{isLoading ? '–' : data?.meta.total ?? 0}</p>
+          <p className="text-3xl font-bold text-text-primary mt-1">{isLoading ? '–' : data?.meta.total ?? 0}</p>
         </Card>
         <Card>
           <p className="text-sm text-text-muted">Certificados emitidos</p>
@@ -110,7 +110,7 @@ export default function MotoristaDashboard() {
                 className="flex items-center justify-between px-6 py-3 hover:bg-dark-700 transition-colors duration-150 cursor-pointer"
               >
                 <div>
-                  <p className="text-sm font-medium text-white">{c.placa}</p>
+                  <p className="text-sm font-medium text-text-primary">{c.placa}</p>
                   <p className="text-xs text-text-muted">{formatDate(c.arrivedAt)}</p>
                 </div>
                 <div className="flex items-center gap-3">

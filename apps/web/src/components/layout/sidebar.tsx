@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { clsx } from 'clsx'
 import { useAuthStore } from '@/lib/auth-store'
+import { useTheme } from '@/lib/theme'
 
 interface NavItem {
   label: string
@@ -46,6 +47,7 @@ export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { user, clearAuth } = useAuthStore()
+  const { theme, toggleTheme } = useTheme()
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const handleLogout = () => {
@@ -58,7 +60,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="px-6 py-5 border-b border-dark-600">
         <div className="flex items-center gap-1">
-          <span className="text-xl font-bold text-white">Frete</span>
+          <span className="text-xl font-bold text-text-primary">Frete</span>
           <span className="text-xl font-bold text-brand-500">Check</span>
         </div>
         <p className="text-xs text-text-muted mt-0.5">Certificação de Espera</p>
@@ -76,7 +78,7 @@ export function Sidebar() {
               'transition-all duration-150 min-h-[44px]',
               pathname === item.href
                 ? 'bg-brand-500/15 text-brand-500 border border-brand-500/20'
-                : 'text-text-muted hover:bg-dark-700 hover:text-white border border-transparent',
+                : 'text-text-muted hover:bg-dark-700 hover:text-text-primary border border-transparent',
             )}
           >
             {item.icon}
@@ -92,19 +94,37 @@ export function Sidebar() {
             {user?.name?.[0]?.toUpperCase() ?? 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">{user?.name ?? 'Usuário'}</p>
+            <p className="text-sm font-medium text-text-primary truncate">{user?.name ?? 'Usuário'}</p>
             <p className="text-xs text-text-muted truncate">{user?.role ?? ''}</p>
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2 text-sm text-text-muted hover:text-brand-500 transition-colors duration-150 cursor-pointer py-2 min-h-[44px]"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-          </svg>
-          Sair
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleLogout}
+            className="flex-1 flex items-center gap-2 text-sm text-text-muted hover:text-brand-500 transition-colors duration-150 cursor-pointer py-2 min-h-[44px]"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+            </svg>
+            Sair
+          </button>
+          <button
+            onClick={toggleTheme}
+            className="flex items-center justify-center w-10 h-10 rounded-lg border border-dark-600 hover:border-brand-500 text-text-muted hover:text-brand-500 transition-all duration-150 cursor-pointer"
+            aria-label={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+            title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+          >
+            {theme === 'dark' ? (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
     </>
   )
@@ -114,7 +134,7 @@ export function Sidebar() {
       {/* Mobile header bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-dark-900/80 backdrop-blur-md border-b border-dark-600 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-1">
-          <span className="text-lg font-bold text-white">Frete</span>
+          <span className="text-lg font-bold text-text-primary">Frete</span>
           <span className="text-lg font-bold text-brand-500">Check</span>
         </div>
         <button

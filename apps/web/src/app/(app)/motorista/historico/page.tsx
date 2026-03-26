@@ -29,7 +29,7 @@ export default function HistoricoPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Histórico</h1>
+          <h1 className="text-2xl font-bold text-text-primary">Histórico</h1>
           <p className="text-text-muted text-sm mt-0.5">Todos os seus check-ins</p>
         </div>
         <Link href="/motorista/checkin/novo">
@@ -53,7 +53,7 @@ export default function HistoricoPage() {
                 className="flex items-center justify-between px-6 py-4 hover:bg-dark-700 transition-colors duration-150 cursor-pointer"
               >
                 <div className="space-y-0.5">
-                  <p className="text-sm font-semibold text-white">{c.placa}</p>
+                  <p className="text-sm font-semibold text-text-primary">{c.placa}</p>
                   <p className="text-xs text-text-muted">{formatDate(c.arrivedAt)}</p>
                   {c.apontamento && (
                     <p className="text-xs text-text-muted">Causa: {(c.apontamento as { causadorNome?: string }).causadorNome}</p>
