@@ -220,7 +220,7 @@ export class CertificadosService {
     },
     numero: string,
   ): Promise<Buffer> {
-    const qrUrl = `https://fretecheck.com.br/certificado/${numero}`
+    const qrUrl = `https://arbitrax.tec.br/certificado/${numero}`
     const qrDataUrl = await QRCode.toDataURL(qrUrl, { width: 120, margin: 1, color: { dark: '#1E3A5F', light: '#FFFFFF' } })
     const qrBuffer = Buffer.from(qrDataUrl.split(',')[1], 'base64')
 
