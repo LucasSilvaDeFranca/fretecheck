@@ -9,18 +9,27 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: true }),
+    new FastifyAdapter({
+      logger: {
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true,
+            translateTime: 'HH:MM:ss',
+            ignore: 'pid,hostname,reqId',
+            messageFormat: '\x1b[36m{msg}\x1b[0m',
+            singleLine: true,
+          },
+        },
+      },
+    }),
   )
 
   const config = app.get(ConfigService)
 
-  // Versionamento de API
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' })
-
-  // Prefixo global
   app.setGlobalPrefix(config.get('API_PREFIX', 'api'))
 
-  // CORS — aceita lista separada por vírgula via env CORS_ORIGIN
   const rawOrigin = config.get('CORS_ORIGIN', 'http://localhost:3000')
   const origins = rawOrigin.split(',').map((o: string) => o.trim())
   app.enableCors({
@@ -28,7 +37,6 @@ async function bootstrap() {
     credentials: true,
   })
 
-  // Validação global com class-validator
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -38,10 +46,8 @@ async function bootstrap() {
     }),
   )
 
-  // Filtro global de exceções
   app.useGlobalFilters(new HttpExceptionFilter())
 
-  // Swagger (apenas em dev/staging)
   if (config.get('NODE_ENV') !== 'production') {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('FreteCheck API')
@@ -52,12 +58,25 @@ async function bootstrap() {
 
     const document = SwaggerModule.createDocument(app, swaggerConfig)
     SwaggerModule.setup('api/docs', app, document)
-    console.log(`📄 Swagger: http://localhost:${config.get('PORT', 3001)}/api/docs`)
   }
 
   const port = config.get('PORT', 3001)
   await app.listen(port, '0.0.0.0')
-  console.log(`🚀 FreteCheck API rodando em: http://localhost:${port}`)
+
+  console.log('')
+  console.log('\x1b[1m\x1b[38;2;240;90;26m  ███████╗██████╗ ███████╗████████╗███████╗\x1b[0m')
+  console.log('\x1b[1m\x1b[38;2;240;90;26m  ██╔════╝██╔══██╗██╔════╝╚══██╔══╝██╔════╝\x1b[0m')
+  console.log('\x1b[1m\x1b[38;2;240;90;26m  █████╗  ██████╔╝█████╗     ██║   █████╗  \x1b[0m')
+  console.log('\x1b[1m\x1b[38;2;240;90;26m  ██╔══╝  ██╔══██╗██╔══╝     ██║   ██╔══╝  \x1b[0m')
+  console.log('\x1b[1m\x1b[38;2;240;90;26m  ██║     ██║  ██║███████╗   ██║   ███████╗\x1b[0m')
+  console.log('\x1b[1m\x1b[38;2;240;90;26m  ╚═╝     ╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝\x1b[0m')
+  console.log('\x1b[38;2;0;201;167m  FreteCheck API v1.0\x1b[0m')
+  console.log('')
+  console.log(`  \x1b[90m├─\x1b[0m \x1b[1mPorta:\x1b[0m      \x1b[33m${port}\x1b[0m`)
+  console.log(`  \x1b[90m├─\x1b[0m \x1b[1mAmbiente:\x1b[0m   \x1b[33m${config.get('NODE_ENV', 'development')}\x1b[0m`)
+  console.log(`  \x1b[90m├─\x1b[0m \x1b[1mCORS:\x1b[0m       \x1b[36m${origins.join(', ')}\x1b[0m`)
+  console.log(`  \x1b[90m└─\x1b[0m \x1b[1mURL:\x1b[0m        \x1b[36mhttp://localhost:${port}/api/v1\x1b[0m`)
+  console.log('')
 }
 
 bootstrap()
