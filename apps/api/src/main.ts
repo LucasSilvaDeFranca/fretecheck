@@ -20,9 +20,11 @@ async function bootstrap() {
   // Prefixo global
   app.setGlobalPrefix(config.get('API_PREFIX', 'api'))
 
-  // CORS
+  // CORS — aceita lista separada por vírgula via env CORS_ORIGIN
+  const rawOrigin = config.get('CORS_ORIGIN', 'http://localhost:3000')
+  const origins = rawOrigin.split(',').map((o: string) => o.trim())
   app.enableCors({
-    origin: config.get('CORS_ORIGIN', 'http://localhost:3000'),
+    origin: origins.length === 1 ? origins[0] : origins,
     credentials: true,
   })
 
