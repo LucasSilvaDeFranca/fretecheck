@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { clsx } from 'clsx'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -22,9 +24,12 @@ export default function HomePage() {
           <Link href="/cadastro" className="bg-brand-500 text-white rounded-lg py-2.5 px-5 font-semibold hover:bg-brand-600 transition-all duration-150 hover:shadow-[0_0_24px_rgba(240,90,26,0.3)] cursor-pointer">
             Começar grátis
           </Link>
+          <ThemeToggle />
         </div>
 
-        <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-text-primary p-2 cursor-pointer" aria-label="Menu">
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <button onClick={() => setMenuOpen(!menuOpen)} className="text-text-primary p-2 cursor-pointer" aria-label="Menu">
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             {menuOpen ? (
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -33,6 +38,7 @@ export default function HomePage() {
             )}
           </svg>
         </button>
+        </div>
       </nav>
 
       {/* Mobile menu */}
@@ -226,6 +232,3 @@ export default function HomePage() {
   )
 }
 
-function clsx(...args: (string | boolean | undefined | null)[]) {
-  return args.filter(Boolean).join(' ')
-}
