@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { clsx } from 'clsx'
 import { useAuthStore } from '@/lib/auth-store'
 
@@ -43,7 +43,13 @@ const MOTORISTA_NAV: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { user, clearAuth } = useAuthStore()
+
+  const handleLogout = () => {
+    clearAuth()
+    router.push('/login')
+  }
 
   return (
     <aside className="flex flex-col w-64 bg-brand-900 text-white min-h-screen">
@@ -84,7 +90,7 @@ export function Sidebar() {
           </div>
         </div>
         <button
-          onClick={clearAuth}
+          onClick={handleLogout}
           className="w-full text-left text-xs text-brand-400 hover:text-white transition-colors"
         >
           Sair
