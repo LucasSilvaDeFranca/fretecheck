@@ -7,167 +7,225 @@ export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <main className="min-h-screen bg-brand-900">
-      {/* Header */}
-      <header className="px-6 py-4 max-w-7xl mx-auto">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1">
-            <span className="text-white font-bold text-2xl">Frete</span>
-            <span className="text-accent font-bold text-2xl">Check</span>
-          </div>
+    <main className="min-h-screen bg-dark-900 text-text-secondary overflow-x-hidden">
+      {/* Navbar */}
+      <nav className="w-full flex items-center justify-between px-6 md:px-12 lg:px-20 py-5 border-b border-dark-600 bg-dark-900/80 backdrop-blur-md relative z-50">
+        <Link href="/" className="flex items-center gap-1">
+          <span className="text-2xl font-bold text-white">Frete</span>
+          <span className="text-2xl font-bold text-brand-500">Check</span>
+        </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/terminais" className="text-brand-200 hover:text-white text-sm transition-colors duration-150 cursor-pointer">
-              Score de Terminais
-            </Link>
-            <Link href="/login" className="text-brand-200 hover:text-white text-sm transition-colors duration-150 cursor-pointer">
-              Entrar
-            </Link>
-            <Link href="/cadastro" className="bg-cta hover:bg-orange-600 text-white font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors duration-150 cursor-pointer">
-              Começar grátis
-            </Link>
-          </nav>
-
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden text-white cursor-pointer p-2"
-            aria-label="Menu"
-          >
-            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              {menuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+        <div className="hidden md:flex items-center gap-8 text-sm text-text-muted">
+          <Link href="#como-funciona" className="hover:text-white transition-colors duration-150 cursor-pointer">Como funciona</Link>
+          <Link href="#pilares" className="hover:text-white transition-colors duration-150 cursor-pointer">Pilares</Link>
+          <Link href="/login" className="hover:text-white transition-colors duration-150 cursor-pointer">Entrar</Link>
+          <Link href="/cadastro" className="bg-brand-500 text-white rounded-lg py-2.5 px-5 font-semibold hover:bg-brand-600 transition-all duration-150 hover:shadow-[0_0_24px_rgba(240,90,26,0.3)] cursor-pointer">
+            Começar grátis
+          </Link>
         </div>
 
-        {/* Mobile menu */}
-        {menuOpen && (
-          <nav className="md:hidden mt-4 pb-4 border-t border-brand-800 pt-4 flex flex-col gap-3">
-            <Link href="/terminais" className="text-brand-200 hover:text-white text-sm py-2 cursor-pointer">
-              Score de Terminais
-            </Link>
-            <Link href="/login" className="text-brand-200 hover:text-white text-sm py-2 cursor-pointer">
-              Entrar
-            </Link>
-            <Link href="/cadastro" className="bg-cta hover:bg-orange-600 text-white font-semibold text-sm px-5 py-2.5 rounded-lg text-center transition-colors duration-150 cursor-pointer">
-              Começar grátis
-            </Link>
-          </nav>
-        )}
-      </header>
+        <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden text-white p-2 cursor-pointer" aria-label="Menu">
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {menuOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
+      </nav>
+
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="md:hidden bg-dark-800 border-b border-dark-600 px-6 py-4 flex flex-col gap-3">
+          <Link href="#como-funciona" onClick={() => setMenuOpen(false)} className="text-text-muted hover:text-white text-sm py-2 cursor-pointer">Como funciona</Link>
+          <Link href="/login" onClick={() => setMenuOpen(false)} className="text-text-muted hover:text-white text-sm py-2 cursor-pointer">Entrar</Link>
+          <Link href="/cadastro" onClick={() => setMenuOpen(false)} className="bg-brand-500 text-white font-semibold text-sm px-5 py-2.5 rounded-lg text-center cursor-pointer">Começar grátis</Link>
+        </div>
+      )}
 
       {/* Hero */}
-      <section className="px-6 py-16 md:py-24 max-w-5xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-800 text-brand-200 text-sm mb-8">
-          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+      <section className="px-6 md:px-12 lg:px-20 pt-16 md:pt-24 pb-20 max-w-[82rem] mx-auto">
+        <div className="inline-flex items-center gap-2 section-label mb-8">
+          <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
           Beta disponível para transportadoras
         </div>
 
-        <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight mb-6">
+        <h1 className="font-bold text-4xl md:text-6xl lg:text-7xl leading-[1.1] tracking-tight text-white mb-6">
           Identifique o responsável.
           <br />
-          <span className="text-accent">Certifique a espera.</span>
+          <span className="text-brand-500">Certifique a espera.</span>
           <br />
           Cobre de quem deve.
         </h1>
 
-        <p className="text-lg md:text-xl text-brand-200 mb-10 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-lg md:text-xl text-text-muted max-w-2xl leading-relaxed mb-10">
           Transportadoras e motoristas perdem R$ 5 bilhões/ano em tempo de espera sem prova
           técnica. FreteCheck registra, certifica e automatiza a cobrança com validade jurídica.
         </p>
 
-        <div className="flex items-center justify-center gap-4 flex-wrap">
-          <Link href="/cadastro" className="bg-cta hover:bg-orange-600 text-white font-semibold px-8 py-3 text-base rounded-lg transition-colors duration-150 cursor-pointer">
+        <div className="flex items-center gap-4 flex-wrap">
+          <Link href="/cadastro" className="bg-brand-500 text-white font-semibold px-8 py-3 text-base rounded-lg hover:bg-brand-600 transition-all duration-150 hover:shadow-[0_0_32px_rgba(240,90,26,0.35)] cursor-pointer">
             Começar grátis
           </Link>
-          <Link
-            href="/terminais"
-            className="px-8 py-3 text-base text-white border border-brand-400 rounded-lg hover:bg-brand-800 transition-colors duration-150 cursor-pointer"
-          >
-            Ver score de terminais
+          <Link href="#como-funciona" className="px-8 py-3 text-base text-brand-500 border-2 border-brand-500 rounded-lg hover:bg-brand-500 hover:text-white transition-all duration-150 cursor-pointer font-semibold">
+            Saiba mais
           </Link>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="px-6 md:px-12 lg:px-20 py-20 max-w-[82rem] mx-auto">
+        <div className="flex items-center gap-4 mb-14">
+          <span className="section-label">Números</span>
+          <div className="h-px bg-dark-600 flex-grow" />
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-12 gap-x-8">
+          {[
+            { value: 'R$ 5B', label: 'perdidos/ano', unit: 'Prejuízo' },
+            { value: 'Lei 11.442', label: 'validade legal', unit: 'Base' },
+            { value: '5h', label: 'tolerância grátis', unit: 'Limite' },
+            { value: 'R$ 1,38', label: 'por ton/hora', unit: 'Valor' },
+          ].map((m) => (
+            <div key={m.label} className="border-l border-dark-600 pl-6">
+              <div className="flex items-start gap-2">
+                <span className="text-3xl md:text-5xl font-bold tracking-tight text-brand-500 leading-none">{m.value}</span>
+                <span className="font-mono text-xs text-text-muted mt-2">({m.unit})</span>
+              </div>
+              <span className="text-sm text-text-secondary mt-3 block">{m.label}</span>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* Pilares */}
-      <section className="px-6 py-16 max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section id="pilares" className="px-6 md:px-12 lg:px-20 py-20 max-w-[82rem] mx-auto">
+        <div className="flex items-center gap-4 mb-16">
+          <span className="section-label">Pilares</span>
+          <div className="h-px bg-dark-600 flex-grow" />
+        </div>
+
+        <div className="flex flex-col">
           {[
             {
-              icon: (
-                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-                </svg>
-              ),
-              title: 'CERTIFICAR',
-              desc: 'Registro imutável com timestamp, GPS e identificação do causador. Validade jurídica pela ICP-Brasil.',
+              num: '01',
+              title: 'Certificar',
+              tags: ['GPS', 'Timestamp', 'ICP-Brasil'],
+              desc: 'Registro imutável com timestamp, GPS e identificação do causador. Validade jurídica pela ICP-Brasil e MP 2.200-2/2001.',
             },
             {
-              icon: (
-                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
-                </svg>
-              ),
-              title: 'COBRAR',
-              desc: 'Geração automática de títulos contra o responsável real. Base legal: Lei 11.442/2007, Art. 11.',
+              num: '02',
+              title: 'Cobrar',
+              tags: ['Lei 11.442', 'Automático', 'Títulos'],
+              desc: 'Geração automática de títulos de cobrança contra o responsável real. Cálculo baseado na Lei 11.442/2007, Art. 11.',
             },
             {
-              icon: (
-                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                </svg>
-              ),
-              title: 'MAPEAR',
-              desc: 'Score público de terminais, heatmaps e alertas de overbooking em tempo real.',
+              num: '03',
+              title: 'Mapear',
+              tags: ['Score', 'Heatmap', 'Alertas'],
+              desc: 'Score público de terminais, heatmaps de atraso e alertas de overbooking em tempo real para toda a cadeia logística.',
             },
-          ].map((p) => (
-            <div key={p.title} className="bg-brand-800 rounded-xl p-6 text-center border border-brand-700 hover:border-brand-600 transition-colors duration-150">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-brand-700 text-accent mb-4">
-                {p.icon}
+          ].map((p, i) => (
+            <div
+              key={p.num}
+              className={clsx(
+                'flex flex-col lg:flex-row lg:items-center gap-6 py-10 group hover:bg-dark-700 transition-colors duration-150 -mx-6 px-6 md:-mx-12 md:px-12 lg:-mx-20 lg:px-20 cursor-pointer',
+                i < 2 && 'border-b border-dark-600',
+              )}
+            >
+              <div className="font-mono text-2xl md:text-3xl text-brand-500 w-16 shrink-0">{p.num}.</div>
+              <div className="text-3xl md:text-4xl font-semibold text-white w-full lg:w-1/3 tracking-tight">{p.title}</div>
+              <div className="flex-grow flex flex-col gap-4">
+                <div className="flex flex-wrap gap-2">
+                  {p.tags.map((t) => (
+                    <span key={t} className="border border-text-muted/20 bg-text-muted/10 rounded-full px-3 py-1 text-[10px] font-mono uppercase tracking-widest text-text-muted">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-text-muted text-sm md:text-base max-w-lg leading-relaxed">{p.desc}</p>
               </div>
-              <h3 className="text-white font-bold text-lg mb-2">{p.title}</h3>
-              <p className="text-brand-300 text-sm leading-relaxed">{p.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Métricas */}
-      <section className="px-6 py-12 max-w-4xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+      {/* How it works */}
+      <section id="como-funciona" className="px-6 md:px-12 lg:px-20 py-24 max-w-[82rem] mx-auto">
+        <div className="flex items-center gap-4 mb-16">
+          <span className="section-label">Como funciona</span>
+          <div className="h-px bg-dark-600 flex-grow" />
+        </div>
+
+        <h2 className="text-3xl md:text-5xl font-semibold tracking-tight text-white leading-[1.2] max-w-5xl mb-16">
+          Em 4 passos simples, o motorista registra, comprova e gera o certificado com validade jurídica.
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[
-            { value: 'R$ 5B', label: 'perdidos/ano' },
-            { value: 'Lei 11.442', label: 'validade legal' },
-            { value: '5h', label: 'tolerância grátis' },
-            { value: 'R$ 1,38', label: 'por ton/hora' },
-          ].map((m) => (
-            <div key={m.label}>
-              <div className="text-2xl md:text-3xl font-bold text-white">{m.value}</div>
-              <div className="text-brand-300 text-sm mt-1">{m.label}</div>
+            { step: '01', title: 'Check-in', desc: 'Motorista chega ao terminal e registra entrada com GPS, placa e capacidade de carga.' },
+            { step: '02', title: 'Apontamento', desc: 'Identifica o causador do atraso (embarcador, destinatário ou terminal) com evidências.' },
+            { step: '03', title: 'Check-out', desc: 'Registra saída. Sistema calcula tempo de espera, excedente e valor automaticamente.' },
+            { step: '04', title: 'Certificado', desc: 'PDF com assinatura digital, QR code de verificação e hash SHA-256 é gerado e enviado.' },
+          ].map((s) => (
+            <div key={s.step} className="bg-dark-800 border border-dark-600 rounded-[20px] p-8 hover:border-dark-500 transition-all duration-150 group">
+              <span className="font-mono text-brand-500 text-sm mb-4 block">{s.step}.</span>
+              <h3 className="text-xl font-semibold text-white mb-3 tracking-tight">{s.title}</h3>
+              <p className="text-text-muted text-sm leading-relaxed">{s.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* CTA Banner */}
+      <section className="bg-brand-500 py-16 md:py-20 overflow-hidden">
+        <div className="max-w-[82rem] mx-auto px-6 md:px-12 lg:px-20 flex flex-col md:flex-row items-center justify-between gap-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+            Comece a certificar seus fretes hoje.
+          </h2>
+          <Link href="/cadastro" className="bg-white text-brand-500 font-semibold px-8 py-3 rounded-lg hover:bg-gray-100 transition-colors duration-150 cursor-pointer whitespace-nowrap">
+            Criar conta grátis
+          </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="px-6 py-8 border-t border-brand-800 max-w-7xl mx-auto mt-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-brand-400 text-sm">
-          <span>&copy; {new Date().getFullYear()} FreteCheck. Todos os direitos reservados.</span>
-          <div className="flex gap-4">
-            <Link href="/privacidade" className="hover:text-brand-200 transition-colors duration-150 cursor-pointer">
-              Privacidade (LGPD)
-            </Link>
-            <Link href="/termos" className="hover:text-brand-200 transition-colors duration-150 cursor-pointer">
-              Termos de uso
-            </Link>
+      <footer className="border-t border-dark-600 pt-16 pb-8 px-6 md:px-12 lg:px-20">
+        <div className="max-w-[82rem] mx-auto">
+          <div className="flex flex-col md:flex-row justify-between gap-12 mb-16">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-1">
+                <span className="text-2xl font-bold text-white">Frete</span>
+                <span className="text-2xl font-bold text-brand-500">Check</span>
+              </div>
+              <p className="text-sm text-text-muted max-w-xs">Certificação de Tempo de Espera no Transporte com validade jurídica.</p>
+            </div>
+            <div className="flex gap-12">
+              <div className="flex flex-col gap-3">
+                <h4 className="text-sm font-semibold text-white">Plataforma</h4>
+                <Link href="/login" className="text-sm text-text-muted hover:text-white transition-colors duration-150 cursor-pointer">Entrar</Link>
+                <Link href="/cadastro" className="text-sm text-text-muted hover:text-white transition-colors duration-150 cursor-pointer">Cadastrar</Link>
+              </div>
+              <div className="flex flex-col gap-3">
+                <h4 className="text-sm font-semibold text-white">Legal</h4>
+                <Link href="/privacidade" className="text-sm text-text-muted hover:text-white transition-colors duration-150 cursor-pointer">Privacidade (LGPD)</Link>
+                <Link href="/termos" className="text-sm text-text-muted hover:text-white transition-colors duration-150 cursor-pointer">Termos de uso</Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="h-px w-full bg-dark-600 mb-8" />
+
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-text-muted">
+            <span>&copy; {new Date().getFullYear()} FreteCheck. Todos os direitos reservados.</span>
           </div>
         </div>
       </footer>
     </main>
   )
+}
+
+function clsx(...args: (string | boolean | undefined | null)[]) {
+  return args.filter(Boolean).join(' ')
 }

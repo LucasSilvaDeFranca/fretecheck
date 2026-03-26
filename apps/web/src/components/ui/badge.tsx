@@ -1,7 +1,7 @@
 import { HTMLAttributes } from 'react'
 import { clsx } from 'clsx'
 
-type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info'
+type BadgeVariant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'brand'
 
 const CHECKIN_STATUS_MAP: Record<string, BadgeVariant> = {
   AWAITING_APPOINTMENT: 'warning',
@@ -29,13 +29,14 @@ export function Badge({ variant = 'default', className, children, ...props }: Ba
   return (
     <span
       className={clsx(
-        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+        'inline-flex items-center px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-widest border',
         {
-          'bg-gray-100 text-gray-700': variant === 'default',
-          'bg-green-100 text-green-700': variant === 'success',
-          'bg-yellow-100 text-yellow-700': variant === 'warning',
-          'bg-red-100 text-red-700': variant === 'danger',
-          'bg-blue-100 text-blue-700': variant === 'info',
+          'bg-dark-700/50 border-dark-500 text-text-muted': variant === 'default',
+          'bg-teal-400/10 border-teal-400/25 text-teal-400': variant === 'success',
+          'bg-amber-500/10 border-amber-500/25 text-amber-400': variant === 'warning',
+          'bg-red-500/10 border-red-500/25 text-red-400': variant === 'danger',
+          'bg-blue-500/10 border-blue-500/25 text-blue-400': variant === 'info',
+          'bg-brand-500/15 border-brand-500/30 text-brand-500': variant === 'brand',
         },
         className,
       )}

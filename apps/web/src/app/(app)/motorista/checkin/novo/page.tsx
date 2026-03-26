@@ -125,8 +125,8 @@ export default function NovoCheckinPage() {
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Novo Check-in</h1>
-        <p className="text-gray-500 text-sm mt-1">Registre sua chegada ao terminal</p>
+        <h1 className="text-2xl font-bold text-white">Novo Check-in</h1>
+        <p className="text-text-muted text-sm mt-1">Registre sua chegada ao terminal</p>
       </div>
 
       {/* GPS status */}
@@ -135,26 +135,26 @@ export default function NovoCheckinPage() {
           <CardTitle>Localização</CardTitle>
         </CardHeader>
         {geo.loading ? (
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <svg className="animate-spin h-4 w-4 text-brand-600" fill="none" viewBox="0 0 24 24">
+          <div className="flex items-center gap-2 text-sm text-text-muted">
+            <svg className="animate-spin h-4 w-4 text-brand-500" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
             Obtendo localização...
           </div>
         ) : geo.error ? (
-          <p className="text-sm text-red-600">{geo.error}</p>
+          <p className="text-sm text-red-400">{geo.error}</p>
         ) : (
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-green-500" />
-              <span className="text-sm text-green-700 font-medium">Localização obtida</span>
+              <span className="h-2 w-2 rounded-full bg-teal-400" />
+              <span className="text-sm text-teal-400 font-medium">Localização obtida</span>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-text-muted">
               {geo.lat?.toFixed(6)}, {geo.lng?.toFixed(6)} · Precisão: {Math.round(geo.accuracy ?? 0)}m
             </p>
             {(geo.accuracy ?? 0) > 500 && (
-              <p className="text-xs text-amber-600">Precisão baixa. Aguarde ou se mova para área aberta.</p>
+              <p className="text-xs text-amber-400">Precisão baixa. Aguarde ou se mova para área aberta.</p>
             )}
           </div>
         )}
@@ -171,10 +171,10 @@ export default function NovoCheckinPage() {
               className="uppercase"
             />
             {buscandoPlaca && (
-              <p className="text-xs text-gray-400 mt-1">Buscando veículo...</p>
+              <p className="text-xs text-text-muted mt-1">Buscando veículo...</p>
             )}
             {veiculoFound && !buscandoPlaca && (
-              <p className="text-xs text-green-600 mt-1">Veículo encontrado — dados preenchidos</p>
+              <p className="text-xs text-teal-400 mt-1">Veículo encontrado — dados preenchidos</p>
             )}
           </div>
 
@@ -216,7 +216,7 @@ export default function NovoCheckinPage() {
           />
 
           {createCheckin.error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+            <div className="bg-red-500/10 border border-red-500/25 rounded-lg p-3 text-red-400 text-sm">
               {(createCheckin.error as { response?: { data?: { message?: string } } })?.response?.data?.message ??
                 'Erro ao registrar check-in.'}
             </div>

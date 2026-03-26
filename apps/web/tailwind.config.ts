@@ -9,26 +9,42 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#EFF6FF',
-          100: '#DBEAFE',
-          200: '#BFDBFE',
-          300: '#93C5FD',
-          400: '#60A5FA',
-          500: '#3B82F6',
-          600: '#2563EB',
-          700: '#1D4ED8',
-          800: '#1E40AF',
-          900: '#1E3A5F',
+        // Hanson-inspired dark palette for FreteCheck
+        dark: {
+          900: '#0B1628',  // main background
+          800: '#132035',  // cards / elevated
+          700: '#1C2E47',  // hover bg / subtle
+          600: '#243650',  // borders
+          500: '#4E5D70',  // hover borders
         },
-        accent: '#F59E0B',
-        cta: '#F97316',
-        success: '#22C55E',
+        brand: {
+          50: '#FFF1EC',
+          100: '#FFD6C7',
+          200: '#FFB8A0',
+          300: '#FF9A78',
+          400: '#F87A51',
+          500: '#F05A1A',  // primary accent (Hanson orange)
+          600: '#C44510',
+          700: '#983508',
+          800: '#6D2504',
+          900: '#411502',
+        },
+        teal: {
+          400: '#00C9A7',
+          500: '#009E83',
+          600: '#007A64',
+        },
+        text: {
+          primary: '#FFFFFF',
+          secondary: '#D0D7E2',
+          muted: '#8A97AB',
+        },
+        success: '#00C9A7',
         warning: '#F59E0B',
         danger: '#EF4444',
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

@@ -52,14 +52,14 @@ export default function CadastroPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-1">
-            <span className="text-brand-700 font-bold text-3xl">Frete</span>
+          <Link href="/" className="inline-flex items-center gap-1 cursor-pointer">
+            <span className="text-white font-bold text-3xl">Frete</span>
             <span className="text-brand-500 font-bold text-3xl">Check</span>
           </Link>
-          <p className="text-gray-500 mt-2 text-sm">Crie sua conta gratuitamente</p>
+          <p className="text-text-muted mt-2 text-sm">Crie sua conta gratuitamente</p>
         </div>
 
         <Card>
@@ -71,7 +71,7 @@ export default function CadastroPage() {
             <Input label="CPF (opcional)" {...register('cpf')} error={errors.cpf?.message} placeholder="000.000.000-00" />
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">{error}</div>
+              <div className="bg-red-500/10 border border-red-500/25 rounded-lg p-3 text-red-400 text-sm">{error}</div>
             )}
 
             <Button type="submit" className="w-full" size="lg" loading={isSubmitting}>
@@ -80,9 +80,9 @@ export default function CadastroPage() {
           </form>
         </Card>
 
-        <p className="text-center text-gray-500 text-sm mt-4">
+        <p className="text-center text-text-muted text-sm mt-4">
           Já tem conta?{' '}
-          <Link href="/login" className="text-brand-600 hover:underline">Entrar</Link>
+          <Link href="/login" className="text-brand-500 hover:text-brand-400 transition-colors cursor-pointer">Entrar</Link>
         </p>
       </div>
     </div>

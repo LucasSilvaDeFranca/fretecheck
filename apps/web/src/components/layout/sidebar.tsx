@@ -56,12 +56,12 @@ export function Sidebar() {
   const navContent = (
     <>
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-brand-800">
+      <div className="px-6 py-5 border-b border-dark-600">
         <div className="flex items-center gap-1">
           <span className="text-xl font-bold text-white">Frete</span>
-          <span className="text-xl font-bold text-accent">Check</span>
+          <span className="text-xl font-bold text-brand-500">Check</span>
         </div>
-        <p className="text-xs text-brand-400 mt-0.5">Certificação de Espera</p>
+        <p className="text-xs text-text-muted mt-0.5">Certificação de Espera</p>
       </div>
 
       {/* Nav */}
@@ -73,10 +73,10 @@ export function Sidebar() {
             onClick={() => setMobileOpen(false)}
             className={clsx(
               'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer',
-              'transition-colors duration-150 min-h-[44px]',
+              'transition-all duration-150 min-h-[44px]',
               pathname === item.href
-                ? 'bg-brand-700 text-white'
-                : 'text-brand-200 hover:bg-brand-800 hover:text-white',
+                ? 'bg-brand-500/15 text-brand-500 border border-brand-500/20'
+                : 'text-text-muted hover:bg-dark-700 hover:text-white border border-transparent',
             )}
           >
             {item.icon}
@@ -86,19 +86,19 @@ export function Sidebar() {
       </nav>
 
       {/* User */}
-      <div className="px-4 py-4 border-t border-brand-800">
+      <div className="px-4 py-4 border-t border-dark-600">
         <div className="flex items-center gap-3 mb-3">
-          <div className="h-9 w-9 rounded-full bg-brand-600 flex items-center justify-center text-sm font-semibold text-white">
+          <div className="h-9 w-9 rounded-full bg-brand-500/20 border border-brand-500/30 flex items-center justify-center text-sm font-semibold text-brand-500">
             {user?.name?.[0]?.toUpperCase() ?? 'U'}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">{user?.name ?? 'Usuário'}</p>
-            <p className="text-xs text-brand-400 truncate">{user?.role ?? ''}</p>
+            <p className="text-xs text-text-muted truncate">{user?.role ?? ''}</p>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-2 text-sm text-brand-400 hover:text-white transition-colors duration-150 cursor-pointer py-2 min-h-[44px]"
+          className="w-full flex items-center gap-2 text-sm text-text-muted hover:text-brand-500 transition-colors duration-150 cursor-pointer py-2 min-h-[44px]"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
@@ -112,10 +112,10 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile header bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-brand-900 border-b border-brand-800 px-4 py-3 flex items-center justify-between">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-dark-900/80 backdrop-blur-md border-b border-dark-600 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-1">
           <span className="text-lg font-bold text-white">Frete</span>
-          <span className="text-lg font-bold text-accent">Check</span>
+          <span className="text-lg font-bold text-brand-500">Check</span>
         </div>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
@@ -134,16 +134,13 @@ export function Sidebar() {
 
       {/* Mobile overlay */}
       {mobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/50"
-          onClick={() => setMobileOpen(false)}
-        />
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/60" onClick={() => setMobileOpen(false)} />
       )}
 
       {/* Mobile sidebar */}
       <aside
         className={clsx(
-          'lg:hidden fixed top-0 left-0 z-50 h-full w-64 bg-brand-900 flex flex-col',
+          'lg:hidden fixed top-0 left-0 z-50 h-full w-64 bg-dark-900 border-r border-dark-600 flex flex-col',
           'transition-transform duration-200',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
         )}
@@ -152,7 +149,7 @@ export function Sidebar() {
       </aside>
 
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-brand-900 text-white min-h-screen flex-shrink-0">
+      <aside className="hidden lg:flex flex-col w-64 bg-dark-900 border-r border-dark-600 min-h-screen flex-shrink-0">
         {navContent}
       </aside>
     </>

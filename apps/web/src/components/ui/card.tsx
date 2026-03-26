@@ -9,7 +9,7 @@ export function Card({ padding = 'md', className, children, ...props }: CardProp
   return (
     <div
       className={clsx(
-        'bg-white rounded-xl border border-gray-200',
+        'bg-dark-800 rounded-xl border border-dark-600 transition-colors duration-150',
         {
           'p-0': padding === 'none',
           'p-4': padding === 'sm',
@@ -27,7 +27,7 @@ export function Card({ padding = 'md', className, children, ...props }: CardProp
 
 export function CardHeader({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={clsx('mb-4 pb-4 border-b border-gray-100', className)} {...props}>
+    <div className={clsx('mb-4 pb-4 border-b border-dark-600', className)} {...props}>
       {children}
     </div>
   )
@@ -35,7 +35,7 @@ export function CardHeader({ className, children, ...props }: HTMLAttributes<HTM
 
 export function CardTitle({ className, children, ...props }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={clsx('text-base font-semibold text-gray-900', className)} {...props}>
+    <h3 className={clsx('text-base font-semibold text-white', className)} {...props}>
       {children}
     </h3>
   )

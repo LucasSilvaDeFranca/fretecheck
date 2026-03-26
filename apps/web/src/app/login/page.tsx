@@ -39,7 +39,6 @@ export default function LoginPage() {
       const { data: res } = await api.post<LoginResponse>('/auth/login', data)
       setAuth(res.user, res.tokens.accessToken, res.tokens.refreshToken)
 
-      // Redirecionar por role
       if (res.user.role === 'MOTORISTA') router.push('/motorista')
       else if (res.user.role.startsWith('TRANSPORTADORA')) router.push('/transportadora')
       else if (res.user.role === 'EMBARCADOR') router.push('/embarcador')
@@ -53,20 +52,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-dark-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-1">
-            <span className="text-brand-700 font-bold text-3xl">Frete</span>
+          <Link href="/" className="inline-flex items-center gap-1 cursor-pointer">
+            <span className="text-white font-bold text-3xl">Frete</span>
             <span className="text-brand-500 font-bold text-3xl">Check</span>
           </Link>
-          <p className="text-gray-500 mt-2 text-sm">Entre na sua conta</p>
+          <p className="text-text-muted mt-2 text-sm">Entre na sua conta</p>
         </div>
 
-        <div className="card">
+        <div className="bg-dark-800 border border-dark-600 rounded-xl p-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">
                 Email ou telefone
               </label>
               <input
@@ -76,12 +75,12 @@ export default function LoginPage() {
                 className="input-field"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Senha</label>
               <input
                 {...register('password')}
                 type="password"
@@ -89,12 +88,12 @@ export default function LoginPage() {
                 className="input-field"
               />
               {errors.password && (
-                <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+                <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>
               )}
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+              <div className="bg-red-500/10 border border-red-500/25 rounded-lg p-3 text-red-400 text-sm">
                 {error}
               </div>
             )}
@@ -104,9 +103,9 @@ export default function LoginPage() {
             </button>
 
             <div className="text-center">
-              <p className="text-gray-500 text-sm">
+              <p className="text-text-muted text-sm">
                 Prefere entrar sem senha? Use{' '}
-                <Link href="/login/otp" className="text-brand-600 hover:underline">
+                <Link href="/login/otp" className="text-brand-500 hover:text-brand-400 transition-colors cursor-pointer">
                   código por email
                 </Link>
               </p>
@@ -114,9 +113,9 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-gray-500 text-sm mt-4">
+        <p className="text-center text-text-muted text-sm mt-4">
           Não tem conta?{' '}
-          <Link href="/cadastro" className="text-brand-600 hover:underline">
+          <Link href="/cadastro" className="text-brand-500 hover:text-brand-400 transition-colors cursor-pointer">
             Cadastre-se grátis
           </Link>
         </p>

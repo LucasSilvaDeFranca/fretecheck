@@ -29,8 +29,8 @@ export default function HistoricoPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Histórico</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Todos os seus check-ins</p>
+          <h1 className="text-2xl font-bold text-white">Histórico</h1>
+          <p className="text-text-muted text-sm mt-0.5">Todos os seus check-ins</p>
         </div>
         <Link href="/motorista/checkin/novo">
           <Button>Novo Check-in</Button>
@@ -39,33 +39,33 @@ export default function HistoricoPage() {
 
       <Card>
         {isLoading ? (
-          <div className="py-12 text-center text-gray-400 text-sm">Carregando...</div>
+          <div className="py-12 text-center text-text-muted text-sm">Carregando...</div>
         ) : checkins.length === 0 ? (
-          <div className="py-12 text-center text-gray-400 text-sm">
+          <div className="py-12 text-center text-text-muted text-sm">
             Nenhum check-in encontrado.
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 -mx-6">
+          <div className="divide-y divide-dark-600 -mx-6">
             {checkins.map((c) => (
               <Link
                 key={c.id}
                 href={`/motorista/checkin/${c.id}`}
-                className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between px-6 py-4 hover:bg-dark-700 transition-colors duration-150 cursor-pointer"
               >
                 <div className="space-y-0.5">
-                  <p className="text-sm font-semibold text-gray-900">{c.placa}</p>
-                  <p className="text-xs text-gray-500">{formatDate(c.arrivedAt)}</p>
+                  <p className="text-sm font-semibold text-white">{c.placa}</p>
+                  <p className="text-xs text-text-muted">{formatDate(c.arrivedAt)}</p>
                   {c.apontamento && (
-                    <p className="text-xs text-gray-400">Causa: {c.apontamento.causadorNome}</p>
+                    <p className="text-xs text-text-muted">Causa: {(c.apontamento as { causadorNome?: string }).causadorNome}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-4 text-right">
                   <div>
                     {c.tempoEsperaMin != null && (
-                      <p className="text-xs text-gray-500">{formatDuration(c.tempoEsperaMin)}</p>
+                      <p className="text-xs text-text-muted">{formatDuration(c.tempoEsperaMin)}</p>
                     )}
                     {c.tempoExcedenteMin != null && c.tempoExcedenteMin > 0 && (
-                      <p className="text-xs text-red-500">+{formatDuration(c.tempoExcedenteMin)} excedente</p>
+                      <p className="text-xs text-red-400">+{formatDuration(c.tempoExcedenteMin)} excedente</p>
                     )}
                   </div>
                   <CheckinStatusBadge status={c.status} />
@@ -77,7 +77,7 @@ export default function HistoricoPage() {
 
         {/* Pagination */}
         {meta && meta.totalPages > 1 && (
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-dark-600">
             <Button
               variant="secondary"
               size="sm"
@@ -86,7 +86,7 @@ export default function HistoricoPage() {
             >
               Anterior
             </Button>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-text-muted">
               Página {page} de {meta.totalPages}
             </span>
             <Button

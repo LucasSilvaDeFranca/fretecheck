@@ -13,7 +13,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="space-y-1.5">
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">
+          <label htmlFor={inputId} className="block text-sm font-medium text-text-secondary">
             {label}
           </label>
         )}
@@ -21,18 +21,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={clsx(
-            'block w-full rounded-lg border px-3 py-2.5 text-sm transition-colors duration-150',
+            'block w-full rounded-lg border px-4 py-2.5 text-sm transition-all duration-150',
+            'bg-dark-800 text-text-secondary placeholder:text-text-muted',
             'focus:outline-none focus:ring-2',
-            'placeholder:text-gray-400',
             error
-              ? 'border-red-300 focus:border-red-400 focus:ring-red-100 bg-red-50/50'
-              : 'border-gray-200 focus:border-brand-500 focus:ring-brand-100 bg-white',
+              ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+              : 'border-dark-600 focus:border-brand-500 focus:ring-brand-500/20',
             className,
           )}
           {...props}
         />
-        {error && <p className="text-xs text-red-600 font-medium">{error}</p>}
-        {hint && !error && <p className="text-xs text-gray-500">{hint}</p>}
+        {error && <p className="text-xs text-red-400 font-medium">{error}</p>}
+        {hint && !error && <p className="text-xs text-text-muted">{hint}</p>}
       </div>
     )
   },
