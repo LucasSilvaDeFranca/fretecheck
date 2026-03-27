@@ -19,21 +19,13 @@ interface MediaFile {
 }
 
 interface MediaUploaderProps {
-  /** Pasta no bucket onde os arquivos serão salvos (ex: "checkins/user-id") */
   folder: string
-  /** Tipos permitidos */
   accept?: MediaType[]
-  /** Permitir múltiplos arquivos */
   multiple?: boolean
-  /** Máximo de arquivos */
   maxFiles?: number
-  /** Tamanho máximo por arquivo em MB */
   maxSizeMB?: number
-  /** Callback com lista de URLs públicas conforme o upload é concluído */
   onChange?: (urls: string[]) => void
-  /** Se fornecido, aplica marca d'água em imagens antes do upload */
   watermarkMetadata?: WatermarkMeta
-  /** Callback com URLs dos arquivos originais (sem watermark) */
   onOriginalsChange?: (urls: string[]) => void
   label?: string
   hint?: string
@@ -44,8 +36,8 @@ interface MediaUploaderProps {
 const ACCEPT_MAP: Record<MediaType, string> = {
   image: 'image/jpeg,image/png,image/webp,image/heic',
   video: 'video/mp4,video/quicktime,video/webm',
-  document: 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  any: 'image/*,video/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  document: 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pdf,.doc,.docx',
+  any: 'image/*,video/*,application/pdf,.pdf,.doc,.docx',
 }
 
 function buildAccept(types: MediaType[]): string {
@@ -62,11 +54,8 @@ function formatSize(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
-function getFileIcon(file: File): string {
-  if (file.type.startsWith('image/')) return '🖼️'
-  if (file.type.startsWith('video/')) return '🎬'
-  if (file.type === 'application/pdf') return '📄'
-  return '📎'
+function isImage(file: File): boolean {
+  return file.type.startsWith('image/')
 }
 
 function createPreview(file: File): Promise<string | undefined> {
@@ -97,6 +86,14 @@ function createPreview(file: File): Promise<string | undefined> {
   })
 }
 
+function getFileExtIcon(file: File) {
+  if (file.type.startsWith('image/')) return 'IMG'
+  if (file.type.startsWith('video/')) return 'VID'
+  if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) return 'PDF'
+  if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) return 'DOC'
+  return 'ARQ'
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function MediaUploader({
@@ -111,7 +108,8 @@ export function MediaUploader({
   label,
   hint,
 }: MediaUploaderProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<MediaFile[]>([])
   const [dragOver, setDragOver] = useState(false)
   const originalUrlsRef = useRef<Record<string, string>>({})
@@ -147,18 +145,14 @@ export function MediaUploader({
         })
       }
 
-      setFiles((prev) => {
-        const merged = [...prev, ...newEntries]
-        return merged
-      })
+      setFiles((prev) => [...prev, ...newEntries])
 
-      // Upload each new pending file
       for (const entry of newEntries) {
         if (entry.status !== 'pending') continue
         setFiles((prev) => prev.map((f) => f.id === entry.id ? { ...f, status: 'uploading' } : f))
         try {
-          if (watermarkMetadata && entry.file.type.startsWith('image/')) {
-            // Upload original first, then watermarked version
+          // Watermark SÓ em imagens, documentos vão direto
+          if (watermarkMetadata && isImage(entry.file)) {
             const [origResult, wmFile] = await Promise.all([
               uploadMedia(entry.file, folder + '/orig', entry.capturedAt),
               applyWatermark(entry.file, watermarkMetadata),
@@ -229,22 +223,12 @@ export function MediaUploader({
   const acceptStr = buildAccept(accept)
   const canAdd = files.length < maxFiles
 
-  const hasImage = accept.includes('image') || accept.includes('any')
-  const hasVideo = accept.includes('video') || accept.includes('any')
-  const hasDoc = accept.includes('document') || accept.includes('any')
-  const typeLabels = [
-    hasImage && 'fotos',
-    hasVideo && 'vídeos',
-    hasDoc && 'documentos',
-  ].filter(Boolean) as string[]
-  const typeText = typeLabels.join(', ').replace(/, ([^,]*)$/, ' ou $1')
-
   return (
     <div className="space-y-3">
       {label && (
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-text-secondary">
           {label}
-          {hint && <span className="ml-1 text-gray-400 font-normal text-xs">({hint})</span>}
+          {hint && <span className="ml-1 text-text-muted font-normal text-xs">({hint})</span>}
         </label>
       )}
 
@@ -255,91 +239,133 @@ export function MediaUploader({
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
           className={`
-            relative border-2 border-dashed rounded-xl p-5 text-center cursor-pointer
+            relative border-2 border-dashed rounded-xl p-5 text-center
             transition-colors duration-150
             ${dragOver
-              ? 'border-brand-500 bg-brand-50'
-              : 'border-gray-200 hover:border-brand-400 hover:bg-gray-50'
+              ? 'border-brand-500 bg-brand-500/10'
+              : 'border-dark-500 hover:border-brand-400'
             }
           `}
-          onClick={() => inputRef.current?.click()}
         >
-          <input
-            ref={inputRef}
-            type="file"
-            className="sr-only"
-            accept={acceptStr}
-            multiple={multiple}
-            capture="environment"
-            onChange={(e) => { if (e.target.files?.length) processFiles(e.target.files) }}
-          />
+          <div className="flex flex-col items-center gap-3 pointer-events-none">
+            {/* Ícones dos tipos aceitos */}
+            <div className="flex items-center gap-4">
+              {/* Câmera (mobile) */}
+              <button
+                type="button"
+                className="pointer-events-auto flex flex-col items-center gap-1 text-text-muted hover:text-brand-500 transition-colors cursor-pointer"
+                onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click() }}
+              >
+                <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+                </svg>
+              </button>
 
-          <div className="flex flex-col items-center gap-2 pointer-events-none">
-            <div className="flex items-center gap-3 text-2xl">
-              {hasImage ? '📷' : null}
-              {hasVideo ? '🎬' : null}
-              {hasDoc ? '📄' : null}
+              {/* Galeria / Arquivos */}
+              <button
+                type="button"
+                className="pointer-events-auto flex flex-col items-center gap-1 text-text-muted hover:text-brand-500 transition-colors cursor-pointer"
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }}
+              >
+                <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+                </svg>
+              </button>
+
+              {/* Documentos */}
+              <button
+                type="button"
+                className="pointer-events-auto flex flex-col items-center gap-1 text-text-muted hover:text-brand-500 transition-colors cursor-pointer"
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }}
+              >
+                <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                </svg>
+              </button>
             </div>
-            <p className="text-sm font-medium text-gray-700">
-              {multiple ? `Adicionar ${typeText}` : `Capturar ${typeText.replace('fotos', 'foto').replace('vídeos', 'vídeo').replace('documentos', 'documento')}`}
+
+            <p className="text-sm font-medium text-text-secondary">
+              Adicionar fotos, vídeos ou documentos
             </p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-text-muted">
               Arraste aqui ou toque para abrir câmera / galeria · máx {maxSizeMB} MB por arquivo
             </p>
             {multiple && maxFiles > 1 && (
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-text-muted">
                 {files.length}/{maxFiles} arquivos
               </p>
             )}
           </div>
+
+          {/* Input para câmera (mobile) */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            className="sr-only"
+            accept="image/*"
+            capture="environment"
+            onChange={(e) => { if (e.target.files?.length) { processFiles(e.target.files); e.target.value = '' } }}
+          />
+
+          {/* Input para arquivos (PC + mobile galeria) — SEM capture */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="sr-only"
+            accept={acceptStr}
+            multiple={multiple}
+            onChange={(e) => { if (e.target.files?.length) { processFiles(e.target.files); e.target.value = '' } }}
+          />
         </div>
       )}
 
-      {/* Preview grid */}
+      {/* Preview list */}
       {files.length > 0 && (
         <div className="space-y-2">
           {files.map((f) => (
             <div
               key={f.id}
-              className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 p-2"
+              className="flex items-center gap-3 rounded-lg border border-dark-600 bg-dark-700 p-2"
             >
               {/* Thumbnail / icon */}
-              <div className="relative shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
+              <div className="relative shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-dark-800 flex items-center justify-center">
                 {f.preview ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={f.preview} alt="" className="w-full h-full object-cover" />
-                    {/* Timestamp overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5">
-                      <p className="text-white text-[8px] leading-none text-center">
-                        {f.capturedAt.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
+                    {/* Legenda SÓ em imagens */}
+                    {isImage(f.file) && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5">
+                        <p className="text-white text-[8px] leading-none text-center">
+                          {f.capturedAt.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    )}
                   </>
                 ) : (
-                  <span className="text-2xl">{getFileIcon(f.file)}</span>
+                  <span className="text-xs font-bold text-brand-500">{getFileExtIcon(f.file)}</span>
                 )}
               </div>
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">{f.file.name}</p>
-                <p className="text-xs text-gray-400">
+                <p className="text-sm font-medium text-text-primary truncate">{f.file.name}</p>
+                <p className="text-xs text-text-muted">
                   {formatSize(f.file.size)} · {formatDate(f.capturedAt)}
                 </p>
 
-                {/* Status */}
                 {f.status === 'uploading' && (
                   <div className="flex items-center gap-1 mt-1">
-                    <svg className="animate-spin h-3 w-3 text-brand-600" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-3 w-3 text-brand-500" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    <span className="text-xs text-brand-600">Enviando...</span>
+                    <span className="text-xs text-brand-500">Enviando...</span>
                   </div>
                 )}
                 {f.status === 'done' && (
-                  <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                  <p className="text-xs text-teal-400 mt-1 flex items-center gap-1">
                     <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -347,16 +373,16 @@ export function MediaUploader({
                   </p>
                 )}
                 {f.status === 'error' && (
-                  <p className="text-xs text-red-600 mt-1">{f.errorMsg}</p>
+                  <p className="text-xs text-red-400 mt-1">{f.errorMsg}</p>
                 )}
               </div>
 
-              {/* Remove button */}
+              {/* Remove */}
               {f.status !== 'uploading' && (
                 <button
                   type="button"
                   onClick={() => remove(f.id)}
-                  className="shrink-0 text-gray-300 hover:text-red-500 transition-colors"
+                  className="shrink-0 text-text-muted hover:text-red-400 transition-colors cursor-pointer"
                   aria-label="Remover"
                 >
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
