@@ -48,7 +48,7 @@ export interface CreateCheckinInput {
 
 export interface CreateApontamentoInput {
   causa: string
-  causadorCnpj: string
+  causadorCnpj?: string
   causadorNome: string
   descricao?: string
   evidenciaUrls?: string[]

@@ -14,7 +14,7 @@ import { CheckinStatusBadge } from '@/components/ui/badge'
 
 const apontamentoSchema = z.object({
   causa: z.enum(['EMBARCADOR', 'DESTINATARIO', 'TERMINAL', 'OUTROS']),
-  causadorCnpj: z.string().regex(/^\d{14}$|^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'CNPJ inválido'),
+  causadorCnpj: z.string().optional().or(z.literal('')),
   causadorNome: z.string().min(3, 'Nome muito curto'),
   descricao: z.string().optional(),
 })
@@ -160,7 +160,9 @@ export default function CheckinDetailPage() {
           <CardHeader><CardTitle>Apontamento</CardTitle></CardHeader>
           <InfoRow label="Causa" value={CAUSA_LABELS[checkin.apontamento.causa] ?? checkin.apontamento.causa} />
           <InfoRow label="Responsável" value={checkin.apontamento.causadorNome} />
-          <InfoRow label="CNPJ" value={checkin.apontamento.causadorCnpj} />
+          {checkin.apontamento.causadorCnpj && (
+            <InfoRow label="CNPJ" value={checkin.apontamento.causadorCnpj} />
+          )}
           {checkin.apontamento.descricao && (
             <InfoRow label="Descrição" value={checkin.apontamento.descricao} />
           )}
@@ -205,7 +207,7 @@ export default function CheckinDetailPage() {
               {errors.causa && <p className="text-xs text-red-400 mt-1">{errors.causa.message}</p>}
             </div>
             <Input
-              label="CNPJ do responsável"
+              label="CNPJ do responsável (opcional)"
               {...register('causadorCnpj')}
               error={errors.causadorCnpj?.message}
               placeholder="00.000.000/0000-00"

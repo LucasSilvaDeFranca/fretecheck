@@ -299,7 +299,9 @@ export class CertificadosService {
       if (checkin.apontamento) {
         campo('Causa identificada', checkin.apontamento.causa)
         campo('Responsável (Nome)', checkin.apontamento.causadorNome)
-        campo('Responsável (CNPJ)', checkin.apontamento.causadorCnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5'))
+        if (checkin.apontamento.causadorCnpj) {
+          campo('Responsável (CNPJ)', checkin.apontamento.causadorCnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5'))
+        }
         if (checkin.apontamento.descricao) campo('Descrição', checkin.apontamento.descricao)
       }
 

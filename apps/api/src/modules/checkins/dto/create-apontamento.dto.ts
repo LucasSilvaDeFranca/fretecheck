@@ -7,10 +7,11 @@ export class CreateApontamentoDto {
   @IsEnum(CausaType)
   causa!: CausaType
 
-  @ApiProperty({ example: '11222333000181', description: 'CNPJ do responsável pelo atraso' })
+  @ApiPropertyOptional({ example: '11222333000181', description: 'CNPJ do responsável pelo atraso (opcional)' })
   @IsString()
   @MaxLength(150)
-  causadorCnpj!: string
+  @IsOptional()
+  causadorCnpj?: string
 
   @ApiProperty({ example: 'Armazém Central São Paulo Ltda' })
   @IsString()

@@ -164,9 +164,9 @@ export class CheckinsService {
       throw new ConflictException('Este check-in já possui um apontamento')
     }
 
-    // Validar CNPJ do causador
-    const cnpjLimpo = dto.causadorCnpj.replace(/\D/g, '')
-    if (!isValidCnpj(cnpjLimpo)) {
+    // Validar CNPJ se informado
+    const cnpjLimpo = dto.causadorCnpj ? dto.causadorCnpj.replace(/\D/g, '') : ''
+    if (cnpjLimpo && !isValidCnpj(cnpjLimpo)) {
       throw new BadRequestException('CNPJ do causador inválido')
     }
 
