@@ -96,9 +96,12 @@ export function MediaUploader({
   label,
   hint,
 }: MediaUploaderProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<MediaFile[]>([])
   const [dragOver, setDragOver] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
   const originalUrlsRef = useRef<Record<string, string>>({})
 
   const doneUrls = (updated: MediaFile[]) =>
@@ -138,7 +141,6 @@ export function MediaUploader({
         if (entry.status !== 'pending') continue
         setFiles((prev) => prev.map((f) => f.id === entry.id ? { ...f, status: 'uploading' } : f))
         try {
-          // Watermark SÓ em imagens
           if (watermarkMetadata && isImage(entry.file)) {
             const [origResult, wmFile] = await Promise.all([
               uploadMedia(entry.file, folder + '/orig', entry.capturedAt),
@@ -158,7 +160,6 @@ export function MediaUploader({
             })
             queueMicrotask(() => onChange?.(updatedUrls))
           } else {
-            // Documentos, vídeos e outros — upload direto sem watermark
             const result = await uploadMedia(entry.file, folder, entry.capturedAt)
             let updatedUrls: string[] = []
             setFiles((prev) => {
@@ -208,6 +209,14 @@ export function MediaUploader({
     if (e.dataTransfer.files.length) processFiles(e.dataTransfer.files)
   }
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.length) {
+      processFiles(e.target.files)
+      e.target.value = ''
+    }
+    setShowMenu(false)
+  }
+
   const canAdd = files.length < maxFiles
 
   return (
@@ -219,13 +228,13 @@ export function MediaUploader({
         </label>
       )}
 
-      {/* Drop zone — um único input que aceita tudo */}
+      {/* Drop zone */}
       {canAdd && (
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
-          onClick={() => inputRef.current?.click()}
+          onClick={() => setShowMenu(true)}
           className={`
             relative border-2 border-dashed rounded-xl p-5 text-center cursor-pointer
             transition-colors duration-150
@@ -235,14 +244,6 @@ export function MediaUploader({
             }
           `}
         >
-          <input
-            ref={inputRef}
-            type="file"
-            className="sr-only"
-            multiple={multiple}
-            onChange={(e) => { if (e.target.files?.length) { processFiles(e.target.files); e.target.value = '' } }}
-          />
-
           <div className="flex flex-col items-center gap-2 pointer-events-none">
             <svg className="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
@@ -259,7 +260,54 @@ export function MediaUploader({
               </p>
             )}
           </div>
+
+          {/* Hidden inputs */}
+          <input ref={galleryInputRef} type="file" className="sr-only" accept="image/*,video/*" multiple={multiple} onChange={handleInputChange} />
+          <input ref={cameraInputRef} type="file" className="sr-only" accept="image/*" capture="environment" onChange={handleInputChange} />
+          <input ref={fileInputRef} type="file" className="sr-only" accept="application/pdf,.pdf,.doc,.docx,image/*,video/*" multiple={multiple} onChange={handleInputChange} />
         </div>
+      )}
+
+      {/* Custom menu (aparece em qualquer browser/device) */}
+      {showMenu && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+          <div className="relative z-50">
+            <div className="absolute bottom-0 left-0 right-0 bg-dark-800 border border-dark-600 rounded-xl overflow-hidden shadow-lg">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setShowMenu(false); galleryInputRef.current?.click() }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-dark-700 transition-colors cursor-pointer border-b border-dark-600"
+              >
+                <svg className="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+                </svg>
+                Fototeca
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setShowMenu(false); cameraInputRef.current?.click() }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-dark-700 transition-colors cursor-pointer border-b border-dark-600"
+              >
+                <svg className="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+                </svg>
+                Tirar Foto ou Gravar Vídeo
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setShowMenu(false); fileInputRef.current?.click() }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-dark-700 transition-colors cursor-pointer"
+              >
+                <svg className="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
+                </svg>
+                Escolher Arquivos
+              </button>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Preview list */}
@@ -270,13 +318,11 @@ export function MediaUploader({
               key={f.id}
               className="flex items-center gap-3 rounded-lg border border-dark-600 bg-dark-700 p-2"
             >
-              {/* Thumbnail / icon */}
               <div className="relative shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-dark-800 flex items-center justify-center">
                 {f.preview ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={f.preview} alt="" className="w-full h-full object-cover" />
-                    {/* Legenda SÓ em imagens */}
                     {isImage(f.file) && (
                       <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5">
                         <p className="text-white text-[8px] leading-none text-center">
@@ -290,7 +336,6 @@ export function MediaUploader({
                 )}
               </div>
 
-              {/* Info */}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-text-primary truncate">{f.file.name}</p>
                 <p className="text-xs text-text-muted">
@@ -319,7 +364,6 @@ export function MediaUploader({
                 )}
               </div>
 
-              {/* Remove */}
               {f.status !== 'uploading' && (
                 <button
                   type="button"
