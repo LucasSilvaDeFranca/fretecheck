@@ -29,7 +29,7 @@ export class CertificadosService {
 
   async emitir(checkinId: string, user: JwtPayload) {
     // Buscar checkin com todos os dados necessários
-    const checkin = await this.prisma.checkin.findUnique({
+    const checkin = await (this.prisma.checkin.findUnique as Function)({
       where: { id: checkinId },
       include: {
         motorista: { select: { id: true, name: true, email: true, cpf: true, phone: true } },
@@ -38,7 +38,7 @@ export class CertificadosService {
         apontamentos: true,
         certificado: true,
       },
-    })
+    }) as any
 
     if (!checkin) throw new NotFoundException('Check-in não encontrado')
 
@@ -139,7 +139,7 @@ export class CertificadosService {
   }
 
   async buscarPublico(numero: string) {
-    const cert = await this.prisma.certificado.findUnique({
+    const cert = await (this.prisma.certificado.findUnique as Function)({
       where: { numero },
       include: {
         checkin: {
@@ -149,7 +149,7 @@ export class CertificadosService {
           },
         },
       },
-    })
+    }) as any
 
     if (!cert) throw new NotFoundException('Certificado não encontrado')
 
@@ -252,8 +252,17 @@ export class CertificadosService {
 
       // ── Corpo ──────────────────────────────────────────────────────────────
       let y = 115
+      const PAGE_BOTTOM = doc.page.height - 120
+
+      const checkPageBreak = (needed: number) => {
+        if (y + needed > PAGE_BOTTOM) {
+          doc.addPage()
+          y = 50
+        }
+      }
 
       const secao = (titulo: string) => {
+        checkPageBreak(50)
         doc.rect(50, y, doc.page.width - 100, 22).fill('#F3F4F6')
         doc.fillColor(BRAND).fontSize(10).font('Helvetica-Bold')
           .text(titulo.toUpperCase(), 58, y + 6)
@@ -261,6 +270,7 @@ export class CertificadosService {
       }
 
       const campo = (label: string, valor: string) => {
+        checkPageBreak(20)
         doc.fillColor(GRAY).fontSize(9).font('Helvetica').text(label, 58, y)
         doc.fillColor('#111827').fontSize(10).font('Helvetica-Bold').text(valor, 200, y)
         y += 18
@@ -305,25 +315,29 @@ export class CertificadosService {
         })
       }
 
-      // ── Rodapé ──────────────────────────────────────────────────────────────
-      const rodapeY = doc.page.height - 100  // 742 em A4 (842pt)
+      // ── Rodapé (posicionado após o conteúdo, com quebra de página se necessário) ──
+      checkPageBreak(160) // espaço para QR + emitido em + footer
+
+      y += 20
       const qrSize = 90
       const qrX = doc.page.width - 50 - qrSize
-      const qrY = rodapeY - qrSize - 10  // 642 — acima da linha amarela
 
-      // QR Code — canto inferior direito, acima da linha amarela
-      doc.image(qrBuffer, qrX, qrY, { width: qrSize })
+      // QR Code — direita
+      doc.image(qrBuffer, qrX, y, { width: qrSize })
       doc.fillColor(GRAY).fontSize(7).font('Helvetica')
-        .text('Escaneie para verificar', qrX - 5, qrY + qrSize + 2, { width: qrSize + 10, align: 'center' })
+        .text('Escaneie para verificar', qrX - 5, y + qrSize + 2, { width: qrSize + 10, align: 'center' })
 
-      // "Emitido em" — centro da página, alinhado verticalmente com o QR
+      // "Emitido em" — centro, alinhado com QR
       doc.fillColor(BRAND).fontSize(9).font('Helvetica-Bold')
         .text(
           `Emitido em: ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
           50,
-          qrY + Math.round(qrSize / 2) - 5,
+          y + Math.round(qrSize / 2) - 5,
           { width: doc.page.width - 100, align: 'center' },
         )
+
+      y += qrSize + 20
+      const rodapeY = y
 
       // Fundo do rodapé + linha amarela
       doc.rect(0, rodapeY, doc.page.width, doc.page.height - rodapeY).fill('#F9FAFB')

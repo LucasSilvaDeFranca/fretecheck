@@ -110,7 +110,7 @@ export class CheckinsService {
     const skip = (page - 1) * limit
 
     const [data, total] = await Promise.all([
-      this.prisma.checkin.findMany({
+      (this.prisma.checkin as any).findMany({
         where: { motoristaId: userId },
         orderBy: { arrivedAt: 'desc' },
         skip,
@@ -122,18 +122,18 @@ export class CheckinsService {
           apontamentos: true,
           certificado: { select: { id: true, numero: true } },
         },
-      }),
+      }) as Promise<any[]>,
       this.prisma.checkin.count({ where: { motoristaId: userId } }),
     ])
 
     return {
-      data: data.map((c: Parameters<typeof this.formatCheckin>[0]) => this.formatCheckin(c)),
+      data: data.map((c: any) => this.formatCheckin(c)),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     }
   }
 
   async findOne(id: string, user: JwtPayload) {
-    const checkin = await this.prisma.checkin.findUnique({
+    const checkin = await (this.prisma.checkin as any).findUnique({
       where: { id },
       include: {
         motorista: { select: { id: true, name: true } },
@@ -142,11 +142,10 @@ export class CheckinsService {
         apontamentos: true,
         certificado: { select: { id: true, numero: true } },
       },
-    })
+    }) as any
 
     if (!checkin) throw new NotFoundException('Check-in não encontrado')
 
-    // Motorista só vê seus próprios; admin vê todos
     if (checkin.motoristaId !== user.sub && user.role !== 'PLATFORM_ADMIN') {
       throw new ForbiddenException('Acesso negado')
     }
@@ -253,7 +252,7 @@ export class CheckinsService {
     const pesoTon = Number((checkin as { capacidadeCargaTon?: unknown }).capacidadeCargaTon ?? 5)
     const valorEstimado = calcularValorEspera(tempoExcedenteMin, pesoTon)
 
-    const updated = await this.prisma.checkin.update({
+    const updated = await (this.prisma.checkin as any).update({
       where: { id: checkinId },
       data: {
         departedAt: now,
@@ -263,7 +262,7 @@ export class CheckinsService {
         tempoEsperaMin,
         tempoExcedenteMin,
         valorEstimado,
-        status: 'AWAITING_CHECKOUT', // Permanece até certificado ser emitido (Sprint 4)
+        status: 'AWAITING_CHECKOUT',
       },
       include: {
         motorista: { select: { id: true, name: true, phone: true } },
@@ -272,7 +271,7 @@ export class CheckinsService {
         apontamentos: true,
         certificado: { select: { id: true, numero: true } },
       },
-    })
+    }) as any
 
     await this.prisma.auditLog.create({
       data: {
@@ -307,12 +306,12 @@ export class CheckinsService {
   }
 
   private async getCheckinOrFail(id: string, _includeVeiculo = false) {
-    const checkin = await this.prisma.checkin.findUnique({
+    const checkin = await (this.prisma.checkin as any).findUnique({
       where: { id },
       include: {
         apontamentos: true,
       },
-    })
+    }) as any
     if (!checkin) throw new NotFoundException('Check-in não encontrado')
     return checkin
   }

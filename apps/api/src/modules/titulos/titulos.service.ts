@@ -27,10 +27,10 @@ export class TitulosService {
   async create(dto: CreateTituloDto, user: JwtPayload) {
     // Verificar que todos os check-ins pertencem à empresa do usuário
     // e estão com status CERTIFICATE_ISSUED
-    const checkins = await this.prisma.checkin.findMany({
+    const checkins = await (this.prisma.checkin as any).findMany({
       where: { id: { in: dto.checkinIds } },
       include: { apontamentos: true, certificado: true },
-    })
+    }) as any[]
 
     if (checkins.length !== dto.checkinIds.length) {
       throw new NotFoundException('Um ou mais check-ins não foram encontrados')
@@ -44,7 +44,7 @@ export class TitulosService {
     }
 
     // Verificar que todos têm o mesmo CNPJ causador
-    const cnpjs = [...new Set(checkins.flatMap((c) => (c.apontamentos ?? []).map((a) => a.causadorCnpj)).filter(Boolean))]
+    const cnpjs = [...new Set(checkins.flatMap((c: any) => (c.apontamentos ?? []).map((a: any) => a.causadorCnpj)).filter(Boolean))]
     if (cnpjs.length !== 1) {
       throw new BadRequestException('Todos os check-ins devem ter o mesmo CNPJ causador')
     }
@@ -120,13 +120,13 @@ export class TitulosService {
   }
 
   async findOne(id: string, user: JwtPayload) {
-    const titulo = await this.prisma.titulo.findUnique({
+    const titulo = await (this.prisma.titulo as any).findUnique({
       where: { id },
       include: {
         items: { include: { checkin: { include: { apontamentos: true } } } },
         contestacao: true,
       },
-    })
+    }) as any
 
     if (!titulo) throw new NotFoundException('Título não encontrado')
     if (titulo.empresaId !== user.empresaId && user.role !== 'PLATFORM_ADMIN') {
