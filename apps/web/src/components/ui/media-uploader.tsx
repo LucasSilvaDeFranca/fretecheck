@@ -33,17 +33,6 @@ interface MediaUploaderProps {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const ACCEPT_MAP: Record<MediaType, string> = {
-  image: 'image/jpeg,image/png,image/webp,image/heic',
-  video: 'video/mp4,video/quicktime,video/webm',
-  document: 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.pdf,.doc,.docx',
-  any: 'image/*,video/*,application/pdf,.pdf,.doc,.docx',
-}
-
-function buildAccept(types: MediaType[]): string {
-  return [...new Set(types.flatMap((t) => ACCEPT_MAP[t].split(',')))].join(',')
-}
-
 function formatDate(d: Date): string {
   return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
 }
@@ -56,6 +45,14 @@ function formatSize(bytes: number): string {
 
 function isImage(file: File): boolean {
   return file.type.startsWith('image/')
+}
+
+function getFileExtIcon(file: File) {
+  if (file.type.startsWith('image/')) return 'IMG'
+  if (file.type.startsWith('video/')) return 'VID'
+  if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) return 'PDF'
+  if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) return 'DOC'
+  return 'ARQ'
 }
 
 function createPreview(file: File): Promise<string | undefined> {
@@ -86,19 +83,10 @@ function createPreview(file: File): Promise<string | undefined> {
   })
 }
 
-function getFileExtIcon(file: File) {
-  if (file.type.startsWith('image/')) return 'IMG'
-  if (file.type.startsWith('video/')) return 'VID'
-  if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) return 'PDF'
-  if (file.name.endsWith('.doc') || file.name.endsWith('.docx')) return 'DOC'
-  return 'ARQ'
-}
-
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function MediaUploader({
   folder,
-  accept = ['any'],
   multiple = false,
   maxFiles = 10,
   maxSizeMB = 50,
@@ -108,8 +96,7 @@ export function MediaUploader({
   label,
   hint,
 }: MediaUploaderProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<MediaFile[]>([])
   const [dragOver, setDragOver] = useState(false)
   const originalUrlsRef = useRef<Record<string, string>>({})
@@ -151,7 +138,7 @@ export function MediaUploader({
         if (entry.status !== 'pending') continue
         setFiles((prev) => prev.map((f) => f.id === entry.id ? { ...f, status: 'uploading' } : f))
         try {
-          // Watermark SÓ em imagens, documentos vão direto
+          // Watermark SÓ em imagens
           if (watermarkMetadata && isImage(entry.file)) {
             const [origResult, wmFile] = await Promise.all([
               uploadMedia(entry.file, folder + '/orig', entry.capturedAt),
@@ -171,6 +158,7 @@ export function MediaUploader({
             })
             queueMicrotask(() => onChange?.(updatedUrls))
           } else {
+            // Documentos, vídeos e outros — upload direto sem watermark
             const result = await uploadMedia(entry.file, folder, entry.capturedAt)
             let updatedUrls: string[] = []
             setFiles((prev) => {
@@ -220,7 +208,6 @@ export function MediaUploader({
     if (e.dataTransfer.files.length) processFiles(e.dataTransfer.files)
   }
 
-  const acceptStr = buildAccept(accept)
   const canAdd = files.length < maxFiles
 
   return (
@@ -232,14 +219,15 @@ export function MediaUploader({
         </label>
       )}
 
-      {/* Drop zone */}
+      {/* Drop zone — um único input que aceita tudo */}
       {canAdd && (
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
+          onClick={() => inputRef.current?.click()}
           className={`
-            relative border-2 border-dashed rounded-xl p-5 text-center
+            relative border-2 border-dashed rounded-xl p-5 text-center cursor-pointer
             transition-colors duration-150
             ${dragOver
               ? 'border-brand-500 bg-brand-500/10'
@@ -247,49 +235,24 @@ export function MediaUploader({
             }
           `}
         >
-          <div className="flex flex-col items-center gap-3 pointer-events-none">
-            {/* Ícones dos tipos aceitos */}
-            <div className="flex items-center gap-4">
-              {/* Câmera (mobile) */}
-              <button
-                type="button"
-                className="pointer-events-auto flex flex-col items-center gap-1 text-text-muted hover:text-brand-500 transition-colors cursor-pointer"
-                onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click() }}
-              >
-                <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-                </svg>
-              </button>
+          <input
+            ref={inputRef}
+            type="file"
+            className="sr-only"
+            accept="image/*,video/*,application/pdf,.pdf,.doc,.docx"
+            multiple={multiple}
+            onChange={(e) => { if (e.target.files?.length) { processFiles(e.target.files); e.target.value = '' } }}
+          />
 
-              {/* Galeria / Arquivos */}
-              <button
-                type="button"
-                className="pointer-events-auto flex flex-col items-center gap-1 text-text-muted hover:text-brand-500 transition-colors cursor-pointer"
-                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }}
-              >
-                <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
-                </svg>
-              </button>
-
-              {/* Documentos */}
-              <button
-                type="button"
-                className="pointer-events-auto flex flex-col items-center gap-1 text-text-muted hover:text-brand-500 transition-colors cursor-pointer"
-                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click() }}
-              >
-                <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                </svg>
-              </button>
-            </div>
-
+          <div className="flex flex-col items-center gap-2 pointer-events-none">
+            <svg className="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+            </svg>
             <p className="text-sm font-medium text-text-secondary">
               Adicionar fotos, vídeos ou documentos
             </p>
             <p className="text-xs text-text-muted">
-              Arraste aqui ou toque para abrir câmera / galeria · máx {maxSizeMB} MB por arquivo
+              Arraste aqui ou toque para selecionar · máx {maxSizeMB} MB por arquivo
             </p>
             {multiple && maxFiles > 1 && (
               <p className="text-xs text-text-muted">
@@ -297,26 +260,6 @@ export function MediaUploader({
               </p>
             )}
           </div>
-
-          {/* Input para câmera (mobile) */}
-          <input
-            ref={cameraInputRef}
-            type="file"
-            className="sr-only"
-            accept="image/*"
-            capture="environment"
-            onChange={(e) => { if (e.target.files?.length) { processFiles(e.target.files); e.target.value = '' } }}
-          />
-
-          {/* Input para arquivos (PC + mobile galeria) — SEM capture */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="sr-only"
-            accept={acceptStr}
-            multiple={multiple}
-            onChange={(e) => { if (e.target.files?.length) { processFiles(e.target.files); e.target.value = '' } }}
-          />
         </div>
       )}
 
