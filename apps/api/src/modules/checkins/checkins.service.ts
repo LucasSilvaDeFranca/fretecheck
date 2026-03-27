@@ -208,6 +208,34 @@ export class CheckinsService {
     return apontamento
   }
 
+  async deleteApontamento(apontamentoId: string, user: JwtPayload) {
+    const apontamento = await this.prisma.apontamento.findUnique({
+      where: { id: apontamentoId },
+      include: { checkin: true },
+    })
+
+    if (!apontamento) throw new NotFoundException('Apontamento não encontrado')
+    if (apontamento.checkin.motoristaId !== user.sub) throw new ForbiddenException('Acesso negado')
+
+    // Não permitir excluir se já tem certificado
+    if (apontamento.checkin.status === 'CERTIFICATE_ISSUED' || apontamento.checkin.status === 'TITLE_GENERATED') {
+      throw new ConflictException('Não é possível excluir apontamento após emissão do certificado')
+    }
+
+    await this.prisma.apontamento.delete({ where: { id: apontamentoId } })
+
+    // Se era o último apontamento, voltar status para AWAITING_APPOINTMENT
+    const remaining = await this.prisma.apontamento.count({ where: { checkinId: apontamento.checkinId } })
+    if (remaining === 0) {
+      await this.prisma.checkin.update({
+        where: { id: apontamento.checkinId },
+        data: { status: 'AWAITING_APPOINTMENT' },
+      })
+    }
+
+    return { message: 'Apontamento excluído' }
+  }
+
   async checkout(checkinId: string, dto: CheckoutDto, user: JwtPayload) {
     const checkin = await this.getCheckinOrFail(checkinId, true)
 

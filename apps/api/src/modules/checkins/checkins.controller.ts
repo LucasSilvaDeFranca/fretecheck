@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Patch,
   Body,
   Param,
@@ -65,6 +66,16 @@ export class CheckinsController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.service.createApontamento(id, dto, user)
+  }
+
+  @Delete('apontamento/:apontamentoId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Excluir um apontamento' })
+  deleteApontamento(
+    @Param('apontamentoId') apontamentoId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.service.deleteApontamento(apontamentoId, user)
   }
 
   @Patch(':id/checkout')

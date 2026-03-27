@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAuth } from '@/hooks/use-auth'
-import { useCheckin, useCreateApontamento, useCheckout } from '@/hooks/use-checkins'
+import { useCheckin, useCreateApontamento, useDeleteApontamento, useCheckout } from '@/hooks/use-checkins'
 import { useCertificado, useEmitirCertificado } from '@/hooks/use-certificados'
 import { Button, Input, Card, CardHeader, CardTitle, MediaUploader, CertificateQr } from '@/components/ui'
 import { CheckinStatusBadge } from '@/components/ui/badge'
@@ -56,6 +56,7 @@ export default function CheckinDetailPage() {
   const { data: checkin, isLoading } = useCheckin(id)
   const { data: certificado } = useCertificado(id)
   const createApontamento = useCreateApontamento(id)
+  const deleteApontamento = useDeleteApontamento(id)
   const doCheckout = useCheckout(id)
   const emitirCertificado = useEmitirCertificado(id)
 
@@ -94,6 +95,9 @@ export default function CheckinDetailPage() {
 
   const onApontamento = async (data: ApontamentoForm) => {
     await createApontamento.mutateAsync({ ...data, evidenciaUrls, evidenciaOriginaisUrls })
+    setShowApontamentoForm(false)
+    setEvidenciaUrls([])
+    setEvidenciaOriginaisUrls([])
   }
 
   const evidenciaFolder = `apontamentos/${id}`
@@ -161,7 +165,23 @@ export default function CheckinDetailPage() {
       {/* Apontamentos registrados */}
       {apontamentos.length > 0 && apontamentos.map((apt, idx) => (
         <Card key={apt.id}>
-          <CardHeader><CardTitle>{apontamentos.length > 1 ? `Apontamento ${idx + 1}` : 'Apontamento'}</CardTitle></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>{apontamentos.length > 1 ? `Apontamento ${idx + 1}` : 'Apontamento'}</CardTitle>
+              {canAddApontamento && (
+                <button
+                  type="button"
+                  onClick={() => { if (confirm('Excluir este apontamento?')) deleteApontamento.mutate(apt.id) }}
+                  className="text-text-muted hover:text-red-400 transition-colors cursor-pointer"
+                  title="Excluir apontamento"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </CardHeader>
           <InfoRow label="Causa" value={CAUSA_LABELS[apt.causa] ?? apt.causa} />
           <InfoRow label="Responsável" value={apt.causadorNome} />
           {apt.causadorCnpj && (

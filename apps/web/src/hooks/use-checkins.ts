@@ -117,6 +117,19 @@ export function useCreateApontamento(checkinId: string) {
   })
 }
 
+export function useDeleteApontamento(checkinId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (apontamentoId: string) => {
+      await api.delete(`/checkins/apontamento/${apontamentoId}`)
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['checkin', checkinId] })
+      qc.invalidateQueries({ queryKey: ['checkins'] })
+    },
+  })
+}
+
 export function useCheckout(checkinId: string) {
   const qc = useQueryClient()
   return useMutation({
