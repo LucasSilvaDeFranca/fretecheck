@@ -96,13 +96,9 @@ export function MediaUploader({
   label,
   hint,
 }: MediaUploaderProps) {
-  const galleryInputRef = useRef<HTMLInputElement>(null)
-  const cameraInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<MediaFile[]>([])
   const [dragOver, setDragOver] = useState(false)
-  const [showMenu, setShowMenu] = useState(false)
-  const isMobile = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   const originalUrlsRef = useRef<Record<string, string>>({})
 
   const doneUrls = (updated: MediaFile[]) =>
@@ -210,14 +206,6 @@ export function MediaUploader({
     if (e.dataTransfer.files.length) processFiles(e.dataTransfer.files)
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length) {
-      processFiles(e.target.files)
-      e.target.value = ''
-    }
-    setShowMenu(false)
-  }
-
   const canAdd = files.length < maxFiles
 
   return (
@@ -235,7 +223,7 @@ export function MediaUploader({
           onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
-          onClick={() => isMobile ? setShowMenu(true) : fileInputRef.current?.click()}
+          onClick={() => fileInputRef.current?.click()}
           className={`
             relative border-2 border-dashed rounded-xl p-5 text-center cursor-pointer
             transition-colors duration-150
@@ -262,53 +250,14 @@ export function MediaUploader({
             )}
           </div>
 
-          {/* Hidden inputs */}
-          <input ref={galleryInputRef} type="file" className="sr-only" accept="image/*,video/*" multiple={multiple} onChange={handleInputChange} />
-          <input ref={cameraInputRef} type="file" className="sr-only" accept="image/*" capture="environment" onChange={handleInputChange} />
-          <input ref={fileInputRef} type="file" className="sr-only" accept="application/pdf,.pdf,.doc,.docx,image/*,video/*" multiple={multiple} onChange={handleInputChange} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="sr-only"
+            multiple={multiple}
+            onChange={(e) => { if (e.target.files?.length) { processFiles(e.target.files); e.target.value = '' } }}
+          />
         </div>
-      )}
-
-      {/* Custom menu (aparece em qualquer browser/device) */}
-      {showMenu && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-          <div className="relative z-50">
-            <div className="absolute bottom-0 left-0 right-0 bg-dark-800 border border-dark-600 rounded-xl overflow-hidden shadow-lg">
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setShowMenu(false); galleryInputRef.current?.click() }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-dark-700 transition-colors cursor-pointer border-b border-dark-600"
-              >
-                <svg className="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
-                </svg>
-                Fototeca
-              </button>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setShowMenu(false); cameraInputRef.current?.click() }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-dark-700 transition-colors cursor-pointer border-b border-dark-600"
-              >
-                <svg className="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-                </svg>
-                Tirar Foto ou Gravar Vídeo
-              </button>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setShowMenu(false); fileInputRef.current?.click() }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-text-secondary hover:bg-dark-700 transition-colors cursor-pointer"
-              >
-                <svg className="h-5 w-5 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
-                </svg>
-                Escolher Arquivos
-              </button>
-            </div>
-          </div>
-        </>
       )}
 
       {/* Preview list */}
