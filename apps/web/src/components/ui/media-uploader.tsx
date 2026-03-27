@@ -102,6 +102,7 @@ export function MediaUploader({
   const [files, setFiles] = useState<MediaFile[]>([])
   const [dragOver, setDragOver] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const isMobile = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
   const originalUrlsRef = useRef<Record<string, string>>({})
 
   const doneUrls = (updated: MediaFile[]) =>
@@ -234,7 +235,7 @@ export function MediaUploader({
           onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
-          onClick={() => setShowMenu(true)}
+          onClick={() => isMobile ? setShowMenu(true) : fileInputRef.current?.click()}
           className={`
             relative border-2 border-dashed rounded-xl p-5 text-center cursor-pointer
             transition-colors duration-150
