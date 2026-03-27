@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsOptional,
   IsUrl,
+  IsIn,
   Min,
   Max,
   MaxLength,
@@ -40,6 +41,11 @@ export class CreateCheckinDto {
   @MaxLength(150)
   @IsOptional()
   modelo?: string
+
+  @ApiProperty({ example: 'CARREGAMENTO', description: 'Tipo de operação: CARREGAMENTO ou DESCARGA' })
+  @IsString()
+  @IsIn(['CARREGAMENTO', 'DESCARGA'], { message: 'Tipo deve ser CARREGAMENTO ou DESCARGA' })
+  tipoOperacao!: string
 
   @ApiProperty({ example: 25, description: 'Capacidade de carga em toneladas' })
   @IsNumber()

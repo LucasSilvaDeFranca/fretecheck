@@ -14,6 +14,7 @@ const schema = z.object({
   placa: z.string().min(1, 'Informe a placa').max(10, 'Máximo 10 caracteres'),
   marca: z.string().max(150).optional(),
   modelo: z.string().max(150).optional(),
+  tipoOperacao: z.enum(['CARREGAMENTO', 'DESCARGA'], { required_error: 'Selecione o tipo de operação' }),
   capacidadeCargaTon: z
     .number({ invalid_type_error: 'Informe a capacidade em toneladas' })
     .min(0.1, 'Mínimo 0.1 toneladas')
@@ -121,6 +122,7 @@ export default function NovoCheckinPage() {
       placa: data.placa.toUpperCase(),
       marca: data.marca || undefined,
       modelo: data.modelo || undefined,
+      tipoOperacao: data.tipoOperacao,
       capacidadeCargaTon: data.capacidadeCargaTon,
       lat: geo.lat,
       lng: geo.lng,
@@ -208,6 +210,19 @@ export default function NovoCheckinPage() {
               error={errors.modelo?.message}
               placeholder="Ex: Constellation"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">Tipo de operação</label>
+            <select
+              {...register('tipoOperacao')}
+              className="w-full rounded-lg border border-dark-600 bg-[#e8f0fd] text-gray-900 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all duration-150 cursor-pointer"
+            >
+              <option value="">Selecione...</option>
+              <option value="CARREGAMENTO">Carregamento</option>
+              <option value="DESCARGA">Descarga</option>
+            </select>
+            {errors.tipoOperacao && <p className="text-xs text-red-400 mt-1">{errors.tipoOperacao.message}</p>}
           </div>
 
           <Input

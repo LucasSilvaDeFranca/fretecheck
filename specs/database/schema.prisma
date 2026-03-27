@@ -207,6 +207,9 @@ model Checkin {
   departedLng     Decimal?      @db.Decimal(11, 8)
   departedAccuracy Float?
 
+  // Tipo de operação (carregamento ou descarga)
+  tipoOperacao    String        @default("CARREGAMENTO") // CARREGAMENTO | DESCARGA
+
   // Capacidade de carga informada pelo motorista (dinâmica por viagem)
   capacidadeCargaTon Decimal    @default(0) @db.Decimal(10, 3)
 

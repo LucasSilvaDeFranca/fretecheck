@@ -67,6 +67,7 @@ export class CheckinsService {
         motoristaId: user.sub,
         veiculoId: veiculo.id,
         terminalId: dto.terminalId,
+        tipoOperacao: dto.tipoOperacao as never,
         capacidadeCargaTon: dto.capacidadeCargaTon,
         arrivedLat: dto.lat,
         arrivedLng: dto.lng,
@@ -75,7 +76,7 @@ export class CheckinsService {
         cteNumero: dto.cteNumero,
         cteChave: dto.cteChave,
         observacoes: dto.observacoes,
-      },
+      } as never,
       include: {
         motorista: { select: { id: true, name: true, phone: true } },
         veiculo: { select: { placa: true } },

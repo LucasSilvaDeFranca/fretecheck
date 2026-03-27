@@ -35,6 +35,7 @@ export interface CreateCheckinInput {
   placa: string
   marca?: string
   modelo?: string
+  tipoOperacao: string
   capacidadeCargaTon: number
   lat: number
   lng: number
