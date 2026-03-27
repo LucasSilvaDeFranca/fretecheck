@@ -204,7 +204,23 @@ export default function CheckinDetailPage() {
       {/* Formulário de apontamento */}
       {(canAddApontamento && (apontamentos.length === 0 || showApontamentoForm)) ? (
         <Card>
-          <CardHeader><CardTitle>Registrar Apontamento</CardTitle></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Registrar Apontamento</CardTitle>
+              {apontamentos.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowApontamentoForm(false)}
+                  className="text-text-muted hover:text-red-400 transition-colors cursor-pointer"
+                  title="Cancelar"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </CardHeader>
           <p className="text-sm text-text-muted mb-4">Identifique o responsável pelo tempo de espera.</p>
           <form onSubmit={handleSubmit(onApontamento)} className="space-y-4">
             <div>
