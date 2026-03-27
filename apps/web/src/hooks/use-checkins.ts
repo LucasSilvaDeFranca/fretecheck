@@ -14,6 +14,7 @@ export interface CheckinResponse {
   tempoEsperaMin?: number
   tempoExcedenteMin?: number
   valorEstimado?: string
+  apontamentos?: ApontamentoResponse[]
   apontamento?: ApontamentoResponse
   certificadoId?: string
   certificadoNumero?: string

@@ -235,7 +235,7 @@ model Checkin {
   terminal        Terminal?     @relation(fields: [terminalId], references: [id])
   terminalId      String?
 
-  apontamento     Apontamento?
+  apontamentos    Apontamento[]
   certificado     Certificado?
   tituloItems     TituloItem[]
 
@@ -258,7 +258,7 @@ model Apontamento {
   createdAt       DateTime  @default(now())
 
   checkin         Checkin   @relation(fields: [checkinId], references: [id])
-  checkinId       String    @unique // Um checkin → um apontamento
+  checkinId       String    // Um checkin pode ter múltiplos apontamentos
 
   @@map("apontamentos")
 }

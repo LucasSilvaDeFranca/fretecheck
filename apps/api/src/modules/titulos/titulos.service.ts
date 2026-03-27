@@ -29,7 +29,7 @@ export class TitulosService {
     // e estão com status CERTIFICATE_ISSUED
     const checkins = await this.prisma.checkin.findMany({
       where: { id: { in: dto.checkinIds } },
-      include: { apontamento: true, certificado: true },
+      include: { apontamentos: true, certificado: true },
     })
 
     if (checkins.length !== dto.checkinIds.length) {
@@ -44,7 +44,7 @@ export class TitulosService {
     }
 
     // Verificar que todos têm o mesmo CNPJ causador
-    const cnpjs = [...new Set(checkins.map((c) => c.apontamento?.causadorCnpj).filter(Boolean))]
+    const cnpjs = [...new Set(checkins.flatMap((c) => (c.apontamentos ?? []).map((a) => a.causadorCnpj)).filter(Boolean))]
     if (cnpjs.length !== 1) {
       throw new BadRequestException('Todos os check-ins devem ter o mesmo CNPJ causador')
     }
@@ -52,7 +52,7 @@ export class TitulosService {
     if (!user.empresaId) throw new ForbiddenException('Apenas transportadoras podem emitir títulos')
 
     const causadorCnpj = cnpjs[0]!
-    const causadorNome = checkins[0].apontamento!.causadorNome
+    const causadorNome = checkins[0].apontamentos?.[0]?.causadorNome ?? ''
     const valorTotal = checkins.reduce((sum, c) => sum + Number(c.valorEstimado ?? 0), 0)
 
     // Gerar número sequencial (produção: usar sequência no banco)
@@ -123,7 +123,7 @@ export class TitulosService {
     const titulo = await this.prisma.titulo.findUnique({
       where: { id },
       include: {
-        items: { include: { checkin: { include: { apontamento: true } } } },
+        items: { include: { checkin: { include: { apontamentos: true } } } },
         contestacao: true,
       },
     })

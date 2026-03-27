@@ -55,8 +55,8 @@ export default function HistoricoPage() {
                 <div className="space-y-0.5">
                   <p className="text-sm font-semibold text-text-primary">{c.placa}</p>
                   <p className="text-xs text-text-muted">{formatDate(c.arrivedAt)}</p>
-                  {c.apontamento && (
-                    <p className="text-xs text-text-muted">Causa: {(c.apontamento as { causadorNome?: string }).causadorNome}</p>
+                  {(c.apontamentos ?? []).length > 0 && (
+                    <p className="text-xs text-text-muted">{(c.apontamentos as { causadorNome?: string }[]).length} apontamento(s)</p>
                   )}
                 </div>
                 <div className="flex items-center gap-4 text-right">

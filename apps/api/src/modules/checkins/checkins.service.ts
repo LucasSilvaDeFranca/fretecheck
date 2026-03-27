@@ -119,7 +119,7 @@ export class CheckinsService {
           motorista: { select: { id: true, name: true } },
           veiculo: { select: { placa: true } },
           terminal: { select: { id: true, nome: true } },
-          apontamento: true,
+          apontamentos: true,
           certificado: { select: { id: true, numero: true } },
         },
       }),
@@ -139,7 +139,7 @@ export class CheckinsService {
         motorista: { select: { id: true, name: true } },
         veiculo: { select: { placa: true } },
         terminal: { select: { id: true, nome: true } },
-        apontamento: true,
+        apontamentos: true,
         certificado: { select: { id: true, numero: true } },
       },
     })
@@ -158,11 +158,8 @@ export class CheckinsService {
     const checkin = await this.getCheckinOrFail(checkinId)
 
     if (checkin.motoristaId !== user.sub) throw new ForbiddenException('Acesso negado')
-    if (checkin.status !== 'AWAITING_APPOINTMENT') {
+    if (checkin.status !== 'AWAITING_APPOINTMENT' && checkin.status !== 'AWAITING_CHECKOUT') {
       throw new ConflictException(`Check-in está em status ${checkin.status}. Apontamento não permitido.`)
-    }
-    if (checkin.apontamento) {
-      throw new ConflictException('Este check-in já possui um apontamento')
     }
 
     // Validar CNPJ se informado
@@ -244,7 +241,7 @@ export class CheckinsService {
         motorista: { select: { id: true, name: true, phone: true } },
         veiculo: { select: { placa: true } },
         terminal: { select: { id: true, nome: true } },
-        apontamento: true,
+        apontamentos: true,
         certificado: { select: { id: true, numero: true } },
       },
     })
@@ -285,7 +282,7 @@ export class CheckinsService {
     const checkin = await this.prisma.checkin.findUnique({
       where: { id },
       include: {
-        apontamento: true,
+        apontamentos: true,
       },
     })
     if (!checkin) throw new NotFoundException('Check-in não encontrado')
@@ -305,7 +302,7 @@ export class CheckinsService {
     motorista: { id: string; name: string }
     veiculo: { placa: string } | null
     terminal?: { id: string; nome: string } | null
-    apontamento?: unknown
+    apontamentos?: unknown
     certificado?: { id: string; numero: string } | null
   }) {
     return {
@@ -321,7 +318,7 @@ export class CheckinsService {
       tempoEsperaMin: c.tempoEsperaMin,
       tempoExcedenteMin: c.tempoExcedenteMin,
       valorEstimado: c.valorEstimado ? c.valorEstimado.toFixed(2) : undefined,
-      apontamento: c.apontamento,
+      apontamentos: c.apontamentos,
       certificadoId: (c.certificado as { id: string } | null)?.id,
       certificadoNumero: (c.certificado as { numero: string } | null)?.numero,
       motoristaId: c.motorista.id,

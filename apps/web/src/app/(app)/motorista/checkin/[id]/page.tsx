@@ -63,6 +63,10 @@ export default function CheckinDetailPage() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [evidenciaUrls, setEvidenciaUrls] = useState<string[]>([])
   const [evidenciaOriginaisUrls, setEvidenciaOriginaisUrls] = useState<string[]>([])
+  const [showApontamentoForm, setShowApontamentoForm] = useState(false)
+
+  const apontamentos = checkin?.apontamentos ?? (checkin?.apontamento ? [checkin.apontamento] : [])
+  const canAddApontamento = checkin?.status === 'AWAITING_APPOINTMENT' || checkin?.status === 'AWAITING_CHECKOUT'
 
   // Status derivado: checkout feito mas certificado ainda não emitido
   const isCheckedOut = !!checkin?.departedAt && checkin.status === 'AWAITING_CHECKOUT'
@@ -154,23 +158,23 @@ export default function CheckinDetailPage() {
         />
       </Card>
 
-      {/* Apontamento — já registrado */}
-      {checkin.apontamento ? (
-        <Card>
-          <CardHeader><CardTitle>Apontamento</CardTitle></CardHeader>
-          <InfoRow label="Causa" value={CAUSA_LABELS[checkin.apontamento.causa] ?? checkin.apontamento.causa} />
-          <InfoRow label="Responsável" value={checkin.apontamento.causadorNome} />
-          {checkin.apontamento.causadorCnpj && (
-            <InfoRow label="CNPJ" value={checkin.apontamento.causadorCnpj} />
+      {/* Apontamentos registrados */}
+      {apontamentos.length > 0 && apontamentos.map((apt, idx) => (
+        <Card key={apt.id}>
+          <CardHeader><CardTitle>{apontamentos.length > 1 ? `Apontamento ${idx + 1}` : 'Apontamento'}</CardTitle></CardHeader>
+          <InfoRow label="Causa" value={CAUSA_LABELS[apt.causa] ?? apt.causa} />
+          <InfoRow label="Responsável" value={apt.causadorNome} />
+          {apt.causadorCnpj && (
+            <InfoRow label="CNPJ" value={apt.causadorCnpj} />
           )}
-          {checkin.apontamento.descricao && (
-            <InfoRow label="Descrição" value={checkin.apontamento.descricao} />
+          {apt.descricao && (
+            <InfoRow label="Descrição" value={apt.descricao} />
           )}
-          {checkin.apontamento.evidenciaUrls.length > 0 && (
+          {apt.evidenciaUrls.length > 0 && (
             <div className="pt-2">
-              <p className="text-xs text-text-muted mb-2">Evidências ({checkin.apontamento.evidenciaUrls.length})</p>
+              <p className="text-xs text-text-muted mb-2">Evidências ({apt.evidenciaUrls.length})</p>
               <div className="flex flex-wrap gap-2">
-                {checkin.apontamento.evidenciaUrls.map((url, i) => (
+                {apt.evidenciaUrls.map((url, i) => (
                   <a
                     key={i}
                     href={url}
@@ -188,7 +192,17 @@ export default function CheckinDetailPage() {
             </div>
           )}
         </Card>
-      ) : checkin.status === 'AWAITING_APPOINTMENT' ? (
+      ))}
+
+      {/* Botão novo apontamento */}
+      {canAddApontamento && apontamentos.length > 0 && !showApontamentoForm && (
+        <Button variant="secondary" className="w-full" onClick={() => setShowApontamentoForm(true)}>
+          + Novo apontamento
+        </Button>
+      )}
+
+      {/* Formulário de apontamento */}
+      {(canAddApontamento && (apontamentos.length === 0 || showApontamentoForm)) ? (
         <Card>
           <CardHeader><CardTitle>Registrar Apontamento</CardTitle></CardHeader>
           <p className="text-sm text-text-muted mb-4">Identifique o responsável pelo tempo de espera.</p>

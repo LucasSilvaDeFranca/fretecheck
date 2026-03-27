@@ -35,7 +35,7 @@ export class CertificadosService {
         motorista: { select: { id: true, name: true, email: true, cpf: true, phone: true } },
         veiculo: true,
         terminal: true,
-        apontamento: true,
+        apontamentos: true,
         certificado: true,
       },
     })
@@ -56,7 +56,7 @@ export class CertificadosService {
       throw new ConflictException('Certificado já emitido para este check-in')
     }
 
-    if (!checkin.apontamento) {
+    if (!checkin.apontamentos || checkin.apontamentos.length === 0) {
       throw new ConflictException('Apontamento é obrigatório antes de emitir o certificado')
     }
 
@@ -145,7 +145,7 @@ export class CertificadosService {
         checkin: {
           include: {
             veiculo: { select: { placa: true } },
-            apontamento: true,
+            apontamentos: true,
           },
         },
       },
@@ -166,13 +166,11 @@ export class CertificadosService {
         tempoEsperaMin: cert.checkin.tempoEsperaMin,
         tempoExcedenteMin: cert.checkin.tempoExcedenteMin,
         valorEstimado: cert.checkin.valorEstimado ? Number(cert.checkin.valorEstimado) : null,
-        apontamento: cert.checkin.apontamento
-          ? {
-              causa: cert.checkin.apontamento.causa,
-              causadorNome: cert.checkin.apontamento.causadorNome,
-              causadorCnpj: cert.checkin.apontamento.causadorCnpj,
-            }
-          : null,
+        apontamentos: (cert.checkin.apontamentos ?? []).map((a: { causa: string; causadorNome: string; causadorCnpj: string }) => ({
+          causa: a.causa,
+          causadorNome: a.causadorNome,
+          causadorCnpj: a.causadorCnpj,
+        })),
       },
     }
   }
@@ -211,12 +209,12 @@ export class CertificadosService {
       motorista: { name: string; cpf: string | null }
       veiculo: { placa: string; marca: string | null; modelo: string | null; pesoToneladas: import('@prisma/client').Prisma.Decimal } | null
       terminal: { nome: string; cnpj: string | null } | null
-      apontamento: {
+      apontamentos: {
         causa: string
         causadorCnpj: string
         causadorNome: string
         descricao: string | null
-      } | null
+      }[]
     },
     numero: string,
   ): Promise<Buffer> {
@@ -294,15 +292,17 @@ export class CertificadosService {
       campo('Valor estimado (R$)', checkin.valorEstimado ? `R$ ${Number(checkin.valorEstimado).toFixed(2)}` : 'R$ 0,00')
       campo('Fórmula aplicada', '(min_exc ÷ 60) × peso_ton × R$ 2,41/t/h')
 
-      y += 5
-      secao('Causa do Atraso (Apontamento)')
-      if (checkin.apontamento) {
-        campo('Causa identificada', checkin.apontamento.causa)
-        campo('Responsável (Nome)', checkin.apontamento.causadorNome)
-        if (checkin.apontamento.causadorCnpj) {
-          campo('Responsável (CNPJ)', checkin.apontamento.causadorCnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5'))
-        }
-        if (checkin.apontamento.descricao) campo('Descrição', checkin.apontamento.descricao)
+      if (checkin.apontamentos.length > 0) {
+        checkin.apontamentos.forEach((apt, idx) => {
+          y += 5
+          secao(checkin.apontamentos.length > 1 ? `Apontamento ${idx + 1}` : 'Causa do Atraso (Apontamento)')
+          campo('Causa identificada', apt.causa)
+          campo('Responsável (Nome)', apt.causadorNome)
+          if (apt.causadorCnpj) {
+            campo('Responsável (CNPJ)', apt.causadorCnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5'))
+          }
+          if (apt.descricao) campo('Descrição', apt.descricao)
+        })
       }
 
       // ── Rodapé ──────────────────────────────────────────────────────────────
