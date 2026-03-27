@@ -2,6 +2,10 @@
 node_modules/
 .pnpm-store/
 
+# Claude Code local config
+.claude/skills/
+.claude/settings.local.json
+
 # Build outputs
 dist/
 .next/
