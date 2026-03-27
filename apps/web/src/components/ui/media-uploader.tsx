@@ -239,7 +239,6 @@ export function MediaUploader({
             ref={inputRef}
             type="file"
             className="sr-only"
-            accept="image/*,video/*,application/pdf,.pdf,.doc,.docx"
             multiple={multiple}
             onChange={(e) => { if (e.target.files?.length) { processFiles(e.target.files); e.target.value = '' } }}
           />
