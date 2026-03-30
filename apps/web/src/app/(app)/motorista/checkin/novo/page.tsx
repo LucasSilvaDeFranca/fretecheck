@@ -19,7 +19,7 @@ const schema = z.object({
     .number({ invalid_type_error: 'Informe a capacidade em toneladas' })
     .min(0.1, 'Mínimo 0.1 toneladas')
     .max(1000000, 'Máximo 1.000.000 toneladas'),
-  docNumero: z.string().max(150).optional(),
+  docNumero: z.string().min(1, 'Informe o número do documento').max(150),
   cteNumero: z.string().max(150).optional(),
   observacoes: z.string().max(150).optional(),
 })
@@ -230,18 +230,22 @@ export default function NovoCheckinPage() {
           </div>
 
           <Input
-            label="Número do documento (opcional)"
+            label={watch('tipoOperacao') === 'DESCARGA' ? 'DACTE, ticket de balança, canhoto' : 'Número da ordem de carregamento'}
             {...register('docNumero')}
-            placeholder={watch('tipoOperacao') === 'DESCARGA' ? 'Nº DACTE' : 'Nº Ordem de Carregamento / Coleta'}
+            error={errors.docNumero?.message}
+            placeholder={watch('tipoOperacao') === 'DESCARGA' ? 'Nº do documento' : 'Nº da ordem'}
           />
 
           <MediaUploader
             folder={`checkins/docs`}
             maxFiles={1}
             label="Documento de viagem"
-            hint="PDF ou foto · opcional"
+            hint="PDF ou foto · obrigatório"
             onChange={setDocUrls}
           />
+          {docUrls.length === 0 && (
+            <p className="text-xs text-text-muted">Anexe o documento para continuar</p>
+          )}
 
           <Input
             label="Capacidade de carga (toneladas)"
@@ -277,7 +281,7 @@ export default function NovoCheckinPage() {
             className="w-full"
             size="lg"
             loading={createCheckin.isPending}
-            disabled={geo.loading || !!geo.error}
+            disabled={geo.loading || !!geo.error || docUrls.length === 0}
           >
             Registrar entrada
           </Button>
