@@ -92,7 +92,7 @@ export default function HomePage() {
             { value: 'R$ 5B', label: 'perdidos/ano', unit: 'Prejuízo' },
             { value: 'Lei 11.442', label: 'validade legal', unit: 'Base' },
             { value: '5h', label: 'tolerância grátis', unit: 'Limite' },
-            { value: 'R$ 1,38', label: 'por ton/hora', unit: 'Valor' },
+            { value: 'R$ 2,41', label: 'por ton/hora', unit: 'Valor' },
           ].map((m) => (
             <div key={m.label} className="border-l border-dark-600 pl-6">
               <div className="flex items-start gap-2">
