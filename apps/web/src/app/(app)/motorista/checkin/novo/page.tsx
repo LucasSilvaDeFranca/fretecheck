@@ -44,6 +44,7 @@ export default function NovoCheckinPage() {
   const [veiculoFound, setVeiculoFound] = useState(false)
   const [buscandoPlaca, setBuscandoPlaca] = useState(false)
   const [docUrls, setDocUrls] = useState<string[]>([])
+  const docUploaded = docUrls.length > 0
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -243,8 +244,8 @@ export default function NovoCheckinPage() {
             hint="PDF ou foto · obrigatório"
             onChange={setDocUrls}
           />
-          {docUrls.length === 0 && (
-            <p className="text-xs text-text-muted">Anexe o documento para continuar</p>
+          {!docUploaded && (
+            <p className="text-xs text-amber-400">Anexe o documento para continuar</p>
           )}
 
           <Input
@@ -281,7 +282,7 @@ export default function NovoCheckinPage() {
             className="w-full"
             size="lg"
             loading={createCheckin.isPending}
-            disabled={geo.loading || !!geo.error || docUrls.length === 0}
+            disabled={geo.loading || !!geo.error || !docUploaded}
           >
             Registrar entrada
           </Button>
