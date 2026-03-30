@@ -11,6 +11,7 @@ import * as crypto from 'crypto'
 import * as fs from 'fs'
 import PDFDocument from 'pdfkit'
 import QRCode from 'qrcode'
+import { PDFDocument as PDFLibDocument } from 'pdf-lib'
 import { PrismaService } from '../../prisma/prisma.service'
 import { JwtPayload } from '@fretecheck/types'
 import { WebhooksService } from '../webhooks/webhooks.service'
@@ -67,8 +68,19 @@ export class CertificadosService {
 
     this.logger.log(`Gerando certificado ${numero} para check-in ${checkinId}`)
 
-    // Gerar PDF
-    const pdfBuffer = await this.gerarPdf(checkin, numero)
+    // Gerar PDF principal
+    const basePdf = await this.gerarPdf(checkin, numero)
+
+    // Anexar mídias (evidências dos apontamentos + documento de viagem)
+    const urls: string[] = []
+    for (const apt of (checkin.apontamentos ?? [])) {
+      for (const url of (apt.evidenciaUrls ?? [])) {
+        urls.push(url)
+      }
+    }
+    if (checkin.docUrl) urls.push(checkin.docUrl)
+
+    const pdfBuffer = urls.length > 0 ? await this.anexarMidias(basePdf, urls) : basePdf
 
     // Hash SHA-256 do PDF
     const pdfHash = crypto.createHash('sha256').update(pdfBuffer).digest('hex')
@@ -354,6 +366,62 @@ export class CertificadosService {
 
       doc.end()
     })
+  }
+
+  // ─── Anexar mídias ao PDF ──────────────────────────────────────────────────
+
+  private async anexarMidias(basePdfBuffer: Buffer, urls: string[]): Promise<Buffer> {
+    try {
+      const mainDoc = await PDFLibDocument.load(basePdfBuffer)
+
+      for (const url of urls) {
+        try {
+          const response = await fetch(url, { signal: AbortSignal.timeout(15_000) })
+          if (!response.ok) continue
+          const contentType = response.headers.get('content-type') ?? ''
+          const buffer = Buffer.from(await response.arrayBuffer())
+
+          if (contentType.includes('pdf')) {
+            // Mesclar páginas do PDF
+            const anexoPdf = await PDFLibDocument.load(buffer)
+            const pages = await mainDoc.copyPages(anexoPdf, anexoPdf.getPageIndices())
+            for (const page of pages) {
+              mainDoc.addPage(page)
+            }
+          } else if (contentType.includes('image')) {
+            // Embutir imagem como página A4
+            const page = mainDoc.addPage([595.28, 841.89]) // A4
+            let img
+            if (contentType.includes('png')) {
+              img = await mainDoc.embedPng(buffer)
+            } else {
+              img = await mainDoc.embedJpg(buffer)
+            }
+            // Ajustar ao tamanho da página com margem
+            const margin = 40
+            const maxW = page.getWidth() - margin * 2
+            const maxH = page.getHeight() - margin * 2
+            const scale = Math.min(maxW / img.width, maxH / img.height, 1)
+            const w = img.width * scale
+            const h = img.height * scale
+            page.drawImage(img, {
+              x: (page.getWidth() - w) / 2,
+              y: (page.getHeight() - h) / 2,
+              width: w,
+              height: h,
+            })
+          }
+        } catch (err) {
+          this.logger.warn(`Falha ao anexar mídia ${url}: ${(err as Error).message}`)
+        }
+      }
+
+      const finalBytes = await mainDoc.save()
+      return Buffer.from(finalBytes)
+    } catch (err) {
+      this.logger.error(`Falha ao mesclar anexos: ${(err as Error).message}`)
+      return basePdfBuffer // fallback: retorna PDF sem anexos
+    }
   }
 
   // ─── ICP-Brasil Signature ──────────────────────────────────────────────────

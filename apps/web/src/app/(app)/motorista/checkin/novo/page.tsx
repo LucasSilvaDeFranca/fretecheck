@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { useCreateCheckin } from '@/hooks/use-checkins'
 import { api } from '@/lib/api'
-import { Button, Input, Card, CardHeader, CardTitle } from '@/components/ui'
+import { Button, Input, Card, CardHeader, CardTitle, MediaUploader } from '@/components/ui'
 
 const schema = z.object({
   placa: z.string().min(1, 'Informe a placa').max(10, 'Máximo 10 caracteres'),
@@ -19,6 +19,7 @@ const schema = z.object({
     .number({ invalid_type_error: 'Informe a capacidade em toneladas' })
     .min(0.1, 'Mínimo 0.1 toneladas')
     .max(1000000, 'Máximo 1.000.000 toneladas'),
+  docNumero: z.string().max(150).optional(),
   cteNumero: z.string().max(150).optional(),
   observacoes: z.string().max(150).optional(),
 })
@@ -42,6 +43,7 @@ export default function NovoCheckinPage() {
   const [endereco, setEndereco] = useState<string | null>(null)
   const [veiculoFound, setVeiculoFound] = useState(false)
   const [buscandoPlaca, setBuscandoPlaca] = useState(false)
+  const [docUrls, setDocUrls] = useState<string[]>([])
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -123,6 +125,8 @@ export default function NovoCheckinPage() {
       marca: data.marca || undefined,
       modelo: data.modelo || undefined,
       tipoOperacao: data.tipoOperacao,
+      docNumero: data.docNumero || undefined,
+      docUrl: docUrls[0] || undefined,
       capacidadeCargaTon: data.capacidadeCargaTon,
       lat: geo.lat,
       lng: geo.lng,
@@ -224,6 +228,20 @@ export default function NovoCheckinPage() {
             </select>
             {errors.tipoOperacao && <p className="text-xs text-red-400 mt-1">{errors.tipoOperacao.message}</p>}
           </div>
+
+          <Input
+            label="Número do documento (opcional)"
+            {...register('docNumero')}
+            placeholder={watch('tipoOperacao') === 'DESCARGA' ? 'Nº DACTE' : 'Nº Ordem de Carregamento / Coleta'}
+          />
+
+          <MediaUploader
+            folder={`checkins/docs`}
+            maxFiles={1}
+            label="Documento de viagem"
+            hint="PDF ou foto · opcional"
+            onChange={setDocUrls}
+          />
 
           <Input
             label="Capacidade de carga (toneladas)"

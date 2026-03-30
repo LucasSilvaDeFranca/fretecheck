@@ -68,6 +68,8 @@ export class CheckinsService {
         veiculoId: veiculo.id,
         terminalId: dto.terminalId,
         tipoOperacao: dto.tipoOperacao as never,
+        docNumero: dto.docNumero as never,
+        docUrl: dto.docUrl as never,
         capacidadeCargaTon: dto.capacidadeCargaTon,
         arrivedLat: dto.lat,
         arrivedLng: dto.lng,

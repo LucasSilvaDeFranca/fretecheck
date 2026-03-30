@@ -87,4 +87,15 @@ export class CreateCheckinDto {
   @MaxLength(150)
   @IsOptional()
   observacoes?: string
+
+  @ApiPropertyOptional({ example: 'OC-12345', description: 'Número do documento de viagem' })
+  @IsString()
+  @MaxLength(150)
+  @IsOptional()
+  docNumero?: string
+
+  @ApiPropertyOptional({ description: 'URL do documento de viagem (PDF/foto)' })
+  @IsString()
+  @IsOptional()
+  docUrl?: string
 }

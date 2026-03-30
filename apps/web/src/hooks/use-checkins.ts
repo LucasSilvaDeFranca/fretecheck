@@ -14,6 +14,8 @@ export interface CheckinResponse {
   tempoEsperaMin?: number
   tempoExcedenteMin?: number
   valorEstimado?: string
+  docNumero?: string
+  docUrl?: string
   apontamentos?: ApontamentoResponse[]
   apontamento?: ApontamentoResponse
   certificadoId?: string
@@ -37,6 +39,8 @@ export interface CreateCheckinInput {
   marca?: string
   modelo?: string
   tipoOperacao: string
+  docNumero?: string
+  docUrl?: string
   capacidadeCargaTon: number
   lat: number
   lng: number

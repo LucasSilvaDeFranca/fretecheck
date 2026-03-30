@@ -160,6 +160,19 @@ export default function CheckinDetailPage() {
           label="Coordenadas"
           value={`${checkin.arrivedLat.toFixed(5)}, ${checkin.arrivedLng.toFixed(5)}`}
         />
+        {checkin.docNumero && (
+          <InfoRow label="Nº Documento" value={checkin.docNumero} />
+        )}
+        {checkin.docUrl && (
+          <InfoRow
+            label="Documento"
+            value={
+              <a href={checkin.docUrl} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline cursor-pointer">
+                Ver documento
+              </a>
+            }
+          />
+        )}
       </Card>
 
       {/* Apontamentos registrados */}
