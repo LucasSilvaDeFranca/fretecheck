@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { uploadMedia } from '@/lib/upload'
 import { applyWatermark, type WatermarkMeta } from '@/lib/watermark'
 
@@ -101,8 +101,11 @@ export function MediaUploader({
   const [dragOver, setDragOver] = useState(false)
   const originalUrlsRef = useRef<Record<string, string>>({})
 
-  const doneUrls = (updated: MediaFile[]) =>
-    updated.filter((f) => f.status === 'done' && f.url).map((f) => f.url!)
+  // Sincronizar URLs com o parent via useEffect (resolve o bug do queueMicrotask)
+  useEffect(() => {
+    const urls = files.filter((f) => f.status === 'done' && f.url).map((f) => f.url!)
+    onChange?.(urls)
+  }, [files]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const processFiles = useCallback(
     async (selected: FileList | File[]) => {
@@ -147,57 +150,31 @@ export function MediaUploader({
             onOriginalsChange?.(Object.values(originalUrlsRef.current))
 
             const wmResult = await uploadMedia(wmFile, folder + '/wm', entry.capturedAt)
-            let updatedUrls: string[] = []
-            setFiles((prev) => {
-              const updated = prev.map((f) =>
-                f.id === entry.id ? { ...f, status: 'done' as const, url: wmResult.publicUrl } : f,
-              )
-              updatedUrls = doneUrls(updated)
-              return updated
-            })
-            queueMicrotask(() => onChange?.(updatedUrls))
+            setFiles((prev) => prev.map((f) =>
+              f.id === entry.id ? { ...f, status: 'done' as const, url: wmResult.publicUrl } : f,
+            ))
           } else {
             const result = await uploadMedia(entry.file, folder, entry.capturedAt)
-            let updatedUrls: string[] = []
-            setFiles((prev) => {
-              const updated = prev.map((f) =>
-                f.id === entry.id ? { ...f, status: 'done' as const, url: result.publicUrl } : f,
-              )
-              updatedUrls = doneUrls(updated)
-              return updated
-            })
-            queueMicrotask(() => onChange?.(updatedUrls))
+            setFiles((prev) => prev.map((f) =>
+              f.id === entry.id ? { ...f, status: 'done' as const, url: result.publicUrl } : f,
+            ))
           }
         } catch (err) {
-          let updatedUrls: string[] = []
-          setFiles((prev) => {
-            const updated = prev.map((f) =>
-              f.id === entry.id
-                ? { ...f, status: 'error' as const, errorMsg: (err as Error).message ?? 'Erro no upload' }
-                : f,
-            )
-            updatedUrls = doneUrls(updated)
-            return updated
-          })
-          queueMicrotask(() => onChange?.(updatedUrls))
+          setFiles((prev) => prev.map((f) =>
+            f.id === entry.id
+              ? { ...f, status: 'error' as const, errorMsg: (err as Error).message ?? 'Erro no upload' }
+              : f,
+          ))
         }
       }
     },
-    [files.length, folder, maxFiles, maxSizeMB, onChange, watermarkMetadata, onOriginalsChange],
+    [files.length, folder, maxFiles, maxSizeMB, watermarkMetadata, onOriginalsChange],
   )
 
   const remove = (id: string) => {
     delete originalUrlsRef.current[id]
-    let updatedUrls: string[] = []
-    setFiles((prev) => {
-      const updated = prev.filter((f) => f.id !== id)
-      updatedUrls = doneUrls(updated)
-      return updated
-    })
-    queueMicrotask(() => {
-      onChange?.(updatedUrls)
-      onOriginalsChange?.(Object.values(originalUrlsRef.current))
-    })
+    setFiles((prev) => prev.filter((f) => f.id !== id))
+    onOriginalsChange?.(Object.values(originalUrlsRef.current))
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -217,7 +194,6 @@ export function MediaUploader({
         </label>
       )}
 
-      {/* Drop zone */}
       {canAdd && (
         <div
           onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
@@ -233,6 +209,14 @@ export function MediaUploader({
             }
           `}
         >
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="sr-only"
+            multiple={multiple}
+            onChange={(e) => { if (e.target.files?.length) { processFiles(e.target.files); e.target.value = '' } }}
+          />
+
           <div className="flex flex-col items-center gap-2 pointer-events-none">
             <svg className="h-8 w-8 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
@@ -249,18 +233,9 @@ export function MediaUploader({
               </p>
             )}
           </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="sr-only"
-            multiple={multiple}
-            onChange={(e) => { if (e.target.files?.length) { processFiles(e.target.files); e.target.value = '' } }}
-          />
         </div>
       )}
 
-      {/* Preview list */}
       {files.length > 0 && (
         <div className="space-y-2">
           {files.map((f) => (
