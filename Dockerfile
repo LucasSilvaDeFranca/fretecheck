@@ -1,7 +1,7 @@
 FROM node:20-alpine3.18
 
-# OpenSSL 1.1 para Prisma Client (Alpine 3.18 tem OpenSSL 1.1)
-RUN apk add --no-cache openssl
+# OpenSSL 1.1 para Prisma Client
+RUN for i in 1 2 3; do apk add --no-cache openssl && break || sleep 5; done
 RUN npm install -g pnpm@10.33.0
 
 WORKDIR /app
