@@ -1,7 +1,7 @@
 FROM node:20-alpine
 
 # OpenSSL necessário para o Prisma Client
-RUN apk add --no-cache openssl && \
+RUN apk add --no-cache openssl libssl3 || true && \
     npm install -g pnpm@10.33.0
 
 WORKDIR /app
