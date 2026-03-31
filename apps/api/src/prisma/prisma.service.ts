@@ -1,4 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common'
+import { Interval } from '@nestjs/schedule'
 import { PrismaClient } from '@prisma/client'
 
 @Injectable()
@@ -24,6 +25,17 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleDestroy() {
     await this.$disconnect()
+  }
+
+  // Ping a cada 4 min para manter o pooler do Supabase acordado
+  @Interval(240_000)
+  async keepAlive() {
+    try {
+      await this.$queryRaw`SELECT 1`
+    } catch {
+      this.logger.warn('Keep-alive ping failed — reconnecting...')
+      try { await this.$connect() } catch {}
+    }
   }
 
   private async connectWithRetry(retries = 3, delay = 2000) {
