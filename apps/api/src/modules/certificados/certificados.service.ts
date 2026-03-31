@@ -112,7 +112,7 @@ export class CertificadosService {
       return cert
     })
 
-    await this.prisma.auditLog.create({
+    this.prisma.auditLog.create({
       data: {
         action: 'certificate.issued',
         resource: 'certificados',
@@ -120,7 +120,7 @@ export class CertificadosService {
         userId: user.sub,
         payload: { numero, pdfHash, assinadoIcpBrasil: assinaturaResult.assinado },
       },
-    })
+    }).catch(() => {})
 
     this.logger.log(`Certificado ${numero} emitido. ICP: ${assinaturaResult.assinado}`)
 

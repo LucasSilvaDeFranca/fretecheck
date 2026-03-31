@@ -88,15 +88,9 @@ export class CheckinsService {
       },
     })
 
-    await this.prisma.auditLog.create({
-      data: {
-        action: 'checkin.created',
-        resource: 'checkins',
-        resourceId: checkin.id,
-        userId: user.sub,
-        payload: { placa, lat: dto.lat, lng: dto.lng },
-      },
-    })
+    this.prisma.auditLog.create({
+      data: { action: 'checkin.created', resource: 'checkins', resourceId: checkin.id, userId: user.sub, payload: { placa, lat: dto.lat, lng: dto.lng } },
+    }).catch(() => {})
 
     this.webhooks.dispatch('CHECKIN_CREATED', {
       checkinId: checkin.id,
@@ -140,7 +134,7 @@ export class CheckinsService {
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     }
 
-    await this.cache.set(cacheKey, result, 30) // 30s cache
+    await this.cache.set(cacheKey, result, 120) // 2min cache
     return result
   }
 
@@ -172,7 +166,7 @@ export class CheckinsService {
     }
 
     const formatted = this.formatCheckin(checkin)
-    await this.cache.set(cacheKey, { motoristaId: checkin.motoristaId, formatted }, 30)
+    await this.cache.set(cacheKey, { motoristaId: checkin.motoristaId, formatted }, 120)
     return formatted
   }
 
@@ -217,15 +211,9 @@ export class CheckinsService {
       )
     }
 
-    await this.prisma.auditLog.create({
-      data: {
-        action: 'apontamento.created',
-        resource: 'apontamentos',
-        resourceId: apontamento.id,
-        userId: user.sub,
-        payload: { causa: dto.causa, causadorCnpj: cnpjLimpo },
-      },
-    })
+    this.prisma.auditLog.create({
+      data: { action: 'apontamento.created', resource: 'apontamentos', resourceId: apontamento.id, userId: user.sub, payload: { causa: dto.causa, causadorCnpj: cnpjLimpo } },
+    }).catch(() => {})
 
     await this.cache.del(`checkin:${checkinId}`)
     await this.cache.del(`checkins:${user.sub}:*`)
@@ -300,7 +288,7 @@ export class CheckinsService {
       },
     }) as any
 
-    await this.prisma.auditLog.create({
+    this.prisma.auditLog.create({
       data: {
         action: 'checkout.completed',
         resource: 'checkins',
@@ -308,7 +296,7 @@ export class CheckinsService {
         userId: user.sub,
         payload: { tempoEsperaMin, tempoExcedenteMin, valorEstimado: valorEstimado.toFixed(2) },
       },
-    })
+    }).catch(() => {})
 
     this.webhooks.dispatch('CHECKOUT_COMPLETED', {
       checkinId,
