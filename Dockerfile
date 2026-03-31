@@ -1,4 +1,4 @@
-FROM node:20.20-alpine3.18
+FROM node:20-alpine3.18
 
 # OpenSSL 1.1 para Prisma Client (Alpine 3.18 tem OpenSSL 1.1)
 RUN apk add --no-cache openssl
