@@ -50,7 +50,7 @@ export class AuthService {
       if (existingPhone) throw new ConflictException('Telefone já cadastrado')
     }
 
-    const passwordHash = dto.password ? await bcrypt.hash(dto.password, 12) : null
+    const passwordHash = dto.password ? await bcrypt.hash(dto.password, 10) : null
 
     const user = await this.prisma.user.create({
       data: {
@@ -64,14 +64,10 @@ export class AuthService {
       },
     })
 
-    await this.prisma.auditLog.create({
-      data: {
-        action: 'auth.register',
-        resource: 'users',
-        resourceId: user.id,
-        userId: user.id,
-      },
-    })
+    // Fire-and-forget
+    this.prisma.auditLog.create({
+      data: { action: 'auth.register', resource: 'users', resourceId: user.id, userId: user.id },
+    }).catch(() => {})
 
     // Gerar token de confirmação (1h) e enviar email de boas-vindas
     if (dto.email) {
@@ -153,19 +149,11 @@ export class AuthService {
       empresaId: user.empresaId ?? undefined,
     })
 
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    })
-
-    await this.prisma.auditLog.create({
-      data: {
-        action: 'auth.login',
-        resource: 'users',
-        resourceId: user.id,
-        userId: user.id,
-      },
-    })
+    // Fire-and-forget: update + auditLog em paralelo, não bloqueia o response
+    Promise.all([
+      this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } }),
+      this.prisma.auditLog.create({ data: { action: 'auth.login', resource: 'users', resourceId: user.id, userId: user.id } }),
+    ]).catch(() => {})
 
     return {
       user: this.toUserResponse(user),
