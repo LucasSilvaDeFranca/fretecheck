@@ -13,9 +13,7 @@ import { LoginDto } from './dto/login.dto'
 import { AuthTokens, AuthUserResponse, LoginResponse, JwtPayload, Role } from '@fretecheck/types'
 import { isValidCpf } from '@fretecheck/validators'
 import { EmailService } from '../email/email.service'
-
-// Armazenamento em memória de OTPs (produção: usar Redis)
-const otpStore = new Map<string, { code: string; expiresAt: Date }>()
+import { CacheService } from '../cache/cache.service'
 
 @Injectable()
 export class AuthService {
@@ -24,6 +22,7 @@ export class AuthService {
     private jwt: JwtService,
     private config: ConfigService,
     private email: EmailService,
+    private cache: CacheService,
   ) {}
 
   async register(dto: RegisterDto): Promise<{ message: string }> {
@@ -185,9 +184,8 @@ export class AuthService {
 
     const code = Math.floor(100_000 + Math.random() * 900_000).toString()
     const ttl = this.config.get<number>('OTP_TTL_SECONDS', 300)
-    const expiresAt = new Date(Date.now() + ttl * 1000)
 
-    otpStore.set(email, { code, expiresAt })
+    await this.cache.set(`otp:${email}`, code, ttl)
 
     await this.email.sendOtp(email, code)
 
@@ -195,16 +193,12 @@ export class AuthService {
   }
 
   async verifyEmailOtp(email: string, code: string): Promise<LoginResponse> {
-    const stored = otpStore.get(email)
+    const stored = await this.cache.get<string>(`otp:${email}`)
 
     if (!stored) throw new UnauthorizedException('Código não encontrado ou expirado')
-    if (stored.expiresAt < new Date()) {
-      otpStore.delete(email)
-      throw new UnauthorizedException('Código expirado')
-    }
-    if (stored.code !== code) throw new UnauthorizedException('Código inválido')
+    if (stored !== code) throw new UnauthorizedException('Código inválido')
 
-    otpStore.delete(email)
+    await this.cache.del(`otp:${email}`)
 
     const user = await this.prisma.user.findUnique({ where: { email, deletedAt: null } })
     if (!user) throw new UnauthorizedException('Usuário não encontrado')

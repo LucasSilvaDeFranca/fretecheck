@@ -13,6 +13,7 @@ import { CertificadosModule } from './modules/certificados/certificados.module'
 import { EmailModule } from './modules/email/email.module'
 import { WebhooksModule } from './modules/webhooks/webhooks.module'
 import { StorageModule } from './modules/storage/storage.module'
+import { CacheModule } from './modules/cache/cache.module'
 
 @Module({
   imports: [
@@ -25,8 +26,9 @@ import { StorageModule } from './modules/storage/storage.module'
     // Jobs agendados (ex: recálculo de score de terminais)
     ScheduleModule.forRoot(),
 
-    // Prisma (banco de dados)
+    // Prisma (banco de dados) + Redis (cache)
     PrismaModule,
+    CacheModule,
 
     // Integrações externas
     BrasilIdModule,

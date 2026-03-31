@@ -14,6 +14,7 @@ import { CheckoutDto } from './dto/checkout.dto'
 import { JwtPayload, TEMPO_LIVRE_MINUTOS, calcularValorEspera } from '@fretecheck/types'
 import { isValidCnpj } from '@fretecheck/validators'
 import { WebhooksService } from '../webhooks/webhooks.service'
+import { CacheService } from '../cache/cache.service'
 
 @Injectable()
 export class CheckinsService {
@@ -22,6 +23,7 @@ export class CheckinsService {
   constructor(
     private prisma: PrismaService,
     private webhooks: WebhooksService,
+    private cache: CacheService,
   ) {}
 
   async create(dto: CreateCheckinDto, user: JwtPayload) {
@@ -105,10 +107,15 @@ export class CheckinsService {
       lng: dto.lng,
     })
 
+    await this.cache.del(`checkins:${user.sub}:*`)
     return this.formatCheckin(checkin)
   }
 
   async findAll(userId: string, page = 1, limit = 20) {
+    const cacheKey = `checkins:${userId}:${page}:${limit}`
+    const cached = await this.cache.get(cacheKey)
+    if (cached) return cached
+
     const skip = (page - 1) * limit
 
     const [data, total] = await Promise.all([
@@ -128,13 +135,25 @@ export class CheckinsService {
       this.prisma.checkin.count({ where: { motoristaId: userId } }),
     ])
 
-    return {
+    const result = {
       data: data.map((c: any) => this.formatCheckin(c)),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     }
+
+    await this.cache.set(cacheKey, result, 30) // 30s cache
+    return result
   }
 
   async findOne(id: string, user: JwtPayload) {
+    const cacheKey = `checkin:${id}`
+    const cached = await this.cache.get<any>(cacheKey)
+    if (cached) {
+      if (cached.motoristaId !== user.sub && user.role !== 'PLATFORM_ADMIN') {
+        throw new ForbiddenException('Acesso negado')
+      }
+      return cached.formatted
+    }
+
     const checkin = await (this.prisma.checkin as any).findUnique({
       where: { id },
       include: {
@@ -152,7 +171,9 @@ export class CheckinsService {
       throw new ForbiddenException('Acesso negado')
     }
 
-    return this.formatCheckin(checkin)
+    const formatted = this.formatCheckin(checkin)
+    await this.cache.set(cacheKey, { motoristaId: checkin.motoristaId, formatted }, 30)
+    return formatted
   }
 
   async createApontamento(checkinId: string, dto: CreateApontamentoDto, user: JwtPayload) {
@@ -206,6 +227,8 @@ export class CheckinsService {
       },
     })
 
+    await this.cache.del(`checkin:${checkinId}`)
+    await this.cache.del(`checkins:${user.sub}:*`)
     return apontamento
   }
 
@@ -234,6 +257,8 @@ export class CheckinsService {
       })
     }
 
+    await this.cache.del(`checkin:${apontamento.checkinId}`)
+    await this.cache.del(`checkins:${apontamento.checkin.motoristaId}:*`)
     return { message: 'Apontamento excluído' }
   }
 
@@ -294,6 +319,8 @@ export class CheckinsService {
       departedAt: now,
     })
 
+    await this.cache.del(`checkin:${checkinId}`)
+    await this.cache.del(`checkins:${user.sub}:*`)
     return this.formatCheckin(updated)
   }
 
