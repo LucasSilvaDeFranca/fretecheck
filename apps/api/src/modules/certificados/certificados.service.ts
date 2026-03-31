@@ -295,6 +295,11 @@ export class CertificadosService {
       campo('Veículo (Placa)', checkin.veiculo?.placa ?? '—')
       campo('Veículo (Modelo)', `${checkin.veiculo?.marca ?? ''} ${checkin.veiculo?.modelo ?? ''}`.trim() || '—')
       campo('Capacidade de Carga', `${Number((checkin as unknown as { capacidadeCargaTon: unknown }).capacidadeCargaTon ?? 0).toFixed(1)} toneladas`)
+      campo('Tipo de Operação', (checkin as any).tipoOperacao === 'DESCARGA' ? 'Descarga' : 'Carregamento')
+      if ((checkin as any).docNumero) {
+        const docLabel = (checkin as any).tipoOperacao === 'DESCARGA' ? 'DACTE / Ticket / Canhoto' : 'Nº Ordem de Carregamento'
+        campo(docLabel, (checkin as any).docNumero)
+      }
       if (checkin.terminal) campo('Terminal / Destino', checkin.terminal.nome)
 
       y += 5
