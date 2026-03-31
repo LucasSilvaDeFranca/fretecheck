@@ -312,7 +312,7 @@ export class CertificadosService {
       campo('Tempo livre (Lei 11.442)', '300 minutos (5 horas)')
       campo('Tempo excedente', `${checkin.tempoExcedenteMin ?? 0} minutos`)
       campo('Valor estimado (R$)', checkin.valorEstimado ? `R$ ${Number(checkin.valorEstimado).toFixed(2)}` : 'R$ 0,00')
-      campo('Fórmula aplicada', '(min_exc ÷ 60) × peso_ton × R$ 2,41/t/h')
+      campo('Fórmula aplicada', '(min_total ÷ 60) × peso_ton × R$ 2,41/t/h (se > 5h)')
 
       if (checkin.apontamentos.length > 0) {
         checkin.apontamentos.forEach((apt, idx) => {

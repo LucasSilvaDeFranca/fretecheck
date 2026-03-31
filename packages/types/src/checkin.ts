@@ -72,6 +72,8 @@ export interface CheckoutResponse extends CheckinResponse {
 export const TEMPO_LIVRE_MINUTOS = 300 // 5 horas — Lei 11.442/2007 Art. 11
 export const VALOR_HORA_POR_TON = 2.41  // R$/ton/hora
 
-export function calcularValorEspera(minutos_excedentes: number, peso_ton: number): number {
-  return (minutos_excedentes / 60) * peso_ton * VALOR_HORA_POR_TON
+export function calcularValorEspera(minutos_total: number, peso_ton: number): number {
+  // Se passou do tempo livre (300min), cobra o tempo TOTAL de espera
+  if (minutos_total <= TEMPO_LIVRE_MINUTOS) return 0
+  return (minutos_total / 60) * peso_ton * VALOR_HORA_POR_TON
 }

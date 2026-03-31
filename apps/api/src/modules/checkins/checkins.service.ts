@@ -277,7 +277,7 @@ export class CheckinsService {
 
     // Calcular valor usando capacidade de carga informada no check-in
     const pesoTon = Number((checkin as { capacidadeCargaTon?: unknown }).capacidadeCargaTon ?? 5)
-    const valorEstimado = calcularValorEspera(tempoExcedenteMin, pesoTon)
+    const valorEstimado = calcularValorEspera(tempoEsperaMin, pesoTon)
 
     const updated = await (this.prisma.checkin as any).update({
       where: { id: checkinId },
