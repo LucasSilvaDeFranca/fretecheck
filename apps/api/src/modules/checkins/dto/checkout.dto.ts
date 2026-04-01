@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { IsNumber, Min, Max } from 'class-validator'
+import { IsNumber, IsString, Min, Max, MaxLength } from 'class-validator'
 
 export class CheckoutDto {
   @ApiProperty({ example: -23.5505 })
@@ -16,6 +16,15 @@ export class CheckoutDto {
 
   @ApiProperty({ example: 20 })
   @IsNumber()
-  @Max(500, { message: 'Precisão GPS deve ser ≤ 500 metros' })
+  @Max(99999)
   accuracy!: number
+
+  @ApiProperty({ example: 'DACTE-12345', description: 'Número do comprovante de finalização' })
+  @IsString()
+  @MaxLength(150)
+  checkoutDocNumero!: string
+
+  @ApiProperty({ description: 'URL do comprovante (PDF/foto)' })
+  @IsString()
+  checkoutDocUrl!: string
 }

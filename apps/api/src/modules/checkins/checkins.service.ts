@@ -277,6 +277,8 @@ export class CheckinsService {
         tempoEsperaMin,
         tempoExcedenteMin,
         valorEstimado,
+        checkoutDocNumero: dto.checkoutDocNumero,
+        checkoutDocUrl: dto.checkoutDocUrl,
         status: 'AWAITING_CHECKOUT',
       },
       include: {

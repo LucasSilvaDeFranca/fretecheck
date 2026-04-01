@@ -79,6 +79,7 @@ export class CertificadosService {
       }
     }
     if (checkin.docUrl) urls.push(checkin.docUrl)
+    if (checkin.checkoutDocUrl) urls.push(checkin.checkoutDocUrl)
 
     const pdfBuffer = urls.length > 0 ? await this.anexarMidias(basePdf, urls) : basePdf
 
@@ -309,6 +310,9 @@ export class CertificadosService {
       campo('Coords. Chegada', `${Number(checkin.arrivedLat).toFixed(6)}, ${Number(checkin.arrivedLng).toFixed(6)}`)
       if (checkin.departedLat && checkin.departedLng) {
         campo('Coords. Saída', `${Number(checkin.departedLat).toFixed(6)}, ${Number(checkin.departedLng).toFixed(6)}`)
+      }
+      if ((checkin as any).checkoutDocNumero) {
+        campo('Comprovante de Finalização', (checkin as any).checkoutDocNumero)
       }
 
       y += 5

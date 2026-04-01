@@ -65,6 +65,8 @@ export interface CheckoutInput {
   lat: number
   lng: number
   accuracy: number
+  checkoutDocNumero: string
+  checkoutDocUrl: string
 }
 
 export function useCheckins(page = 1, limit = 20) {

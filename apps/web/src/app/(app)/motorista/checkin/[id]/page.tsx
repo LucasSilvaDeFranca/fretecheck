@@ -62,6 +62,8 @@ export default function CheckinDetailPage() {
 
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const [checkoutDocNumero, setCheckoutDocNumero] = useState('')
+  const [checkoutDocUrls, setCheckoutDocUrls] = useState<string[]>([])
   const [evidenciaUrls, setEvidenciaUrls] = useState<string[]>([])
   const [evidenciaOriginaisUrls, setEvidenciaOriginaisUrls] = useState<string[]>([])
   const [showApontamentoForm, setShowApontamentoForm] = useState(false)
@@ -85,7 +87,13 @@ export default function CheckinDetailPage() {
       const pos = await new Promise<GeolocationPosition>((res, rej) =>
         navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true }),
       )
-      await doCheckout.mutateAsync({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy })
+      await doCheckout.mutateAsync({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+        checkoutDocNumero,
+        checkoutDocUrl: checkoutDocUrls[0],
+      })
     } catch (e) {
       setCheckoutError((e as Error).message ?? 'Erro ao registrar saída.')
     } finally {
@@ -160,6 +168,19 @@ export default function CheckinDetailPage() {
           label="Coordenadas"
           value={`${checkin.arrivedLat.toFixed(5)}, ${checkin.arrivedLng.toFixed(5)}`}
         />
+        {(checkin as any).checkoutDocNumero && (
+          <InfoRow label="Comprovante Finalização" value={(checkin as any).checkoutDocNumero} />
+        )}
+        {(checkin as any).checkoutDocUrl && (
+          <InfoRow
+            label="Doc. Finalização"
+            value={
+              <a href={(checkin as any).checkoutDocUrl} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline cursor-pointer">
+                Ver comprovante
+              </a>
+            }
+          />
+        )}
         {checkin.docNumero && (
           <InfoRow label="Nº Documento" value={checkin.docNumero} />
         )}
@@ -325,10 +346,38 @@ export default function CheckinDetailPage() {
         <Card>
           <CardHeader><CardTitle>Registrar Saída</CardTitle></CardHeader>
           <p className="text-sm text-text-muted mb-4">
-            Confirme sua saída do terminal para calcular o tempo total de espera.
+            Anexe o comprovante de finalização e confirme sua saída.
           </p>
+
+          <div className="space-y-4 mb-4">
+            <Input
+              label={(checkin as any).tipoOperacao === 'DESCARGA' ? 'Nº Canhoto / Ticket de balança' : 'Nº DACTE emitido'}
+              value={checkoutDocNumero}
+              onChange={(e) => setCheckoutDocNumero(e.target.value)}
+              placeholder="Nº do comprovante"
+              maxLength={150}
+            />
+
+            <MediaUploader
+              folder={`checkins/checkout-docs`}
+              maxFiles={1}
+              label="Comprovante de finalização"
+              hint="PDF ou foto · obrigatório"
+              onChange={setCheckoutDocUrls}
+            />
+            {checkoutDocUrls.length === 0 && (
+              <p className="text-xs text-amber-400">Anexe o comprovante para continuar</p>
+            )}
+          </div>
+
           {checkoutError && <p className="text-sm text-red-400 mb-3">{checkoutError}</p>}
-          <Button className="w-full" size="lg" onClick={handleCheckout} loading={checkoutLoading}>
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={handleCheckout}
+            loading={checkoutLoading}
+            disabled={!checkoutDocNumero.trim() || checkoutDocUrls.length === 0}
+          >
             Confirmar saída
           </Button>
         </Card>

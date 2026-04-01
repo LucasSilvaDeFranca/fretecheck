@@ -210,9 +210,13 @@ model Checkin {
   // Tipo de operação (carregamento ou descarga)
   tipoOperacao    String        @default("CARREGAMENTO") // CARREGAMENTO | DESCARGA
 
-  // Documento de viagem (número + arquivo)
+  // Documento de viagem (número + arquivo) — check-in
   docNumero       String?
   docUrl          String?
+
+  // Comprovante de finalização — checkout
+  checkoutDocNumero String?
+  checkoutDocUrl    String?
 
   // Capacidade de carga informada pelo motorista (dinâmica por viagem)
   capacidadeCargaTon Decimal    @default(0) @db.Decimal(10, 3)
